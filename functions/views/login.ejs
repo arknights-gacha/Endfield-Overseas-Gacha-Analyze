@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta name="google-site-verification" content="-r9-42OaiijcNFEbHg0HM3QdyfWyt6R-rEErIIRceak" />
+    <meta name="keywords" content="Endfield, 明日方舟, 終末地, 抽卡, 尋訪, 國際服, 尋訪紀錄, 紀錄分析">
+    <meta name="description" content="明日方舟：終末地國際服尋訪紀錄分析工具，支持紀錄匯入、匯出、統計分析等功能">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <title>登入頁 - 終末地國際服尋訪紀錄分析</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/css/your.css" />
+    <style>
+      .login-wrapper {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        padding: 2rem;
+        flex-wrap: wrap;
+      }
+      .login-box {
+        background: #121212;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        flex: 1 1 300px;
+        max-width: 25rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .login-box form {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      .input-group {
+        margin-bottom: 1rem;
+      }
+      .input-label {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      .login-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #333;
+        border-radius: 0.25rem;
+        background: #000;
+        color: #e0e0e0;
+      }
+      .login-textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #333;
+        border-radius: 0.25rem;
+        background: #000;
+        color: #e0e0e0;
+        resize: vertical;
+        font-family: monospace;
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: #10d1fe;
+        border: none;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        color: #000;
+        cursor: pointer;
+        margin-top: auto;
+      }
+      @media (max-width: 768px) {
+        .login-wrapper {
+          flex-direction: column;
+          align-items: center;
+          padding: 1rem;
+        }
+        .login-box {
+          width: 100%;
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body class="dark-mode" style="background-color: #000000; color: #e0e0e0">
+    <!-- 大標題 -->
+    <div class="HgfD8Q" style="padding: 1.5rem; text-align: center">
+      <div class="tshJ_L" style="font-size: 1.5rem">
+        明日方舟：終末地國際服尋訪紀錄分析
+      </div>
+    </div>
+
+    <!-- 登入區塊容器 -->
+    <div class="login-wrapper">
+      <% if (roles && roles.length > 0) { %>
+      <!-- 方法一：選擇角色 -->
+      <div class="login-box">
+        <div class="tshJ_L" style="margin-bottom: 1rem">
+          請選擇要分析的角色（伺服器）
+        </div>
+        <form method="post" action="/login">
+          <input type="hidden" name="method" value="selectRole" />
+          <input type="hidden" name="oauthToken" value="<%= oauthToken %>" />
+          <% roles.forEach(function(role, idx) { %>
+            <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #1bd1fe; border-radius: 0.25rem; cursor: pointer;">
+                <label style="display: flex; align-items: center; cursor: pointer; width: 100%;">
+                    <input type="radio" name="selectedRoleIndex" value="<%= idx %>" required <%= idx === 0 ? 'checked' : '' %> style="margin-right: 1rem;">
+                    <div>
+                        <div style="font-weight: bold; color: #f7ff00;"><%= role.nickName %> (Lv.<%= role.level %>)</div>
+                        <div style="color: #ccc; font-size: 0.9em;">伺服器：<%= role.serverName %> | UID：<%= role.uid %></div>
+                    </div>
+                </label>
+                <!-- Hidden inputs dynamically set by JS or handled on backend. Actually it's easier to use JSON string for the value. -->
+            </div>
+          <% }); %>
+          <!-- We can inject a script to map the index to actual hidden inputs on submit -->
+          <div id="selectedRolePayload"></div>
+          <button type="submit" class="submit-btn" id="startFetchBtn">
+            開始抓取資料
+          </button>
+        </form>
+        <script>
+            const rolesData = <%- JSON.stringify(roles) %>;
+            document.getElementById('startFetchBtn').addEventListener('click', function(e) {
+                const radios = document.getElementsByName('selectedRoleIndex');
+                let selectedIdx = 0;
+                for (let r of radios) {
+                    if (r.checked) {
+                        selectedIdx = parseInt(r.value, 10);
+                        break;
+                    }
+                }
+                const selectedRole = rolesData[selectedIdx];
+                const container = document.getElementById('selectedRolePayload');
+                container.innerHTML = `
+                    <input type="hidden" name="uid" value="${selectedRole.uid}" />
+                    <input type="hidden" name="serverId" value="${selectedRole.serverId}" />
+                    <input type="hidden" name="serverName" value="${selectedRole.serverName}" />
+                    <input type="hidden" name="nickName" value="${selectedRole.nickName}" />
+                `;
+            });
+        </script>
+      </div>
+      <% } else { %>
+      <!-- 方法一：Account Token -->
+      <div class="login-box">
+        <div class="tshJ_L" style="margin-bottom: 1rem">
+          方法一：Account Token（紀錄獲取）
+        </div>
+        <form id="cookieForm" method="post" action="/login">
+          <input type="hidden" name="method" value="accountToken" />
+          <div class="input-group">
+            <label class="input-label">登入憑證 (Account Token)</label>
+            <textarea name="accountToken" class="login-textarea" required rows="4" placeholder="請將網頁上的 JSON 內容完整貼上"></textarea>
+          </div>
+          <button type="submit" class="submit-btn">
+            驗證並選擇伺服器
+          </button>
+        </form>
+      </div>
+
+      <!-- 方法二：Existing ID 登入 -->
+      <div class="login-box">
+        <div class="tshJ_L" style="margin-bottom: 1rem">
+          方法二：UID（已獲取紀錄查詢）
+        </div>
+        <form method="post" action="/login">
+          <input type="hidden" name="method" value="existing" />
+          <div class="input-group">
+            <label class="input-label">使用者 ID (UID)</label>
+            <input name="uid" class="login-input" type="text" required />
+          </div>
+          <button type="submit" class="submit-btn">
+            登入
+          </button>
+        </form>
+      </div>
+
+      <!-- 方法三：上傳 JSON 登入 -->
+      <div class="login-box">
+        <div class="tshJ_L" style="margin-bottom: 1rem">
+          方法三：JSON（上傳紀錄）
+        </div>
+        <form id="uploadForm">
+          <input type="hidden" name="method" value="upload" />
+          <div class="input-group">
+            <label class="input-label">使用者 ID (UID)</label>
+            <input name="uid" id="uploadUid" class="login-input" type="text" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label">ef_visit_logs.json 檔案</label>
+            <input name="file" id="uploadFile" class="login-input" style="padding: 0.35rem;" type="file" accept="application/json" required />
+          </div>
+          <button type="submit" class="submit-btn">
+            上傳並登入
+          </button>
+        </form>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- 使用說明 -->
+    <div class="x82bAA">
+      <div class="tshJ_L">使用說明</div>
+      <div class="ab1yWq">
+        <div class="wYL2n2 Q25EOd"></div>
+        <div class="wYL2n2 xW0Sk9"></div>
+        <div class="wYL2n2 m8kOmo"></div>
+        <div class="wYL2n2 Mric6f"></div>
+        <div class="Xo6v7v">
+          <div>
+            1：首次使用必須先獲取或上傳，以下是方法一（網站獲取）的使用說明：<br />
+            2：請先確認您已經在 <a href="https://user.gryphline.com/" target="_blank" style="color:#10d1fe">Gryphline 官網</a> 登入您的帳號。<br />
+            3：點擊此連結前往憑證頁面：<a href="https://web-api.gryphline.com/cookie_store/account_token" target="_blank" style="color:#10d1fe">https://web-api.gryphline.com/cookie_store/account_token</a><br />
+            4：請將該頁面顯示的整段文字全部複製。<br />
+            5：回到本站，將複製的文字貼上到「登入憑證 (Account Token)」欄位中，然後點擊「驗證並選擇角色」。<br />
+            6：選擇您遊玩的伺服器帳號後，系統便會自動去官網載入所有的角色與武器抽卡紀錄！
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 注意事項 -->
+    <div class="x82bAA">
+      <div class="tshJ_L">注意事項</div>
+      <div class="ab1yWq">
+        <div class="wYL2n2 Q25EOd"></div>
+        <div class="wYL2n2 xW0Sk9"></div>
+        <div class="wYL2n2 m8kOmo"></div>
+        <div class="wYL2n2 Mric6f"></div>
+        <div class="Xo6v7v">
+          <div>1：本網站不保證任何資料的正確性或完整性，本網站不保證任何使用者的資料留存與否，本網站將不定時清除任意紀錄且不另行告知，請在每次查詢完成後自行將紀錄導出，若有刪除紀錄的需求，可使用「方法三：上傳 JSON」功能上傳空白檔案。</div>
+          <div>2：請注意，由於方法二的存在，任何人都可以藉由你的 UID 訪問這裡的紀錄，若有顧慮請在完成獲取後及時刪除。</div>
+          <div>3：請注意，由於方法三的存在，任何人都可以藉由你的 UID 覆蓋或刪除這裡的紀錄，請在查詢完成後及時將紀錄導出。</div>
+          <div>4：如需在查詢過程中合併過往紀錄，請先使用「方法三：上傳 JSON」功能，登出後再使用「方法一」登入。「方法二：Existing ID 登入」亦可用於檢查過往紀錄是否存在或完整。</div>
+          <div>5：本網站不會保留您的登入憑證。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 免責聲明 -->
+    <div class="x82bAA">
+      <div class="tshJ_L">免責聲明</div>
+      <div class="ab1yWq">
+        <div class="wYL2n2 Q25EOd"></div>
+        <div class="wYL2n2 xW0Sk9"></div>
+        <div class="wYL2n2 m8kOmo"></div>
+        <div class="wYL2n2 Mric6f"></div>
+        <div class="Xo6v7v">
+          <div>1：本網站與遊戲公司（如鷹角網路、龍成網路、艾瑞爾網路、悠星網路或蒙塔山工作室）無任何關聯，也未經其授權。</div>
+          <div>2：任何使用本網站的人士，須自行承擔一切風險，網站作者不保證使用本網站不會違反任何機構的使用條款或任何地區的法律規範，網站作者不保證使用本網站不會造成任何個人資料的洩漏，網站作者不會負責任何因使用本網站而引致之損失，網站作者不會作出任何默示的擔保。</div>
+          <div>3：本網站僅供學術研究與個人用途，禁止用於任何商業用途或轉售。</div>
+          <div>4：網站內使用的遊戲圖片、動畫、音訊、文字原文、風格、樣式與部分版面設計，僅用於更好地表現遊戲資料，其版權屬於上海鷹角網路科技有限公司、龍成網路有限公司、艾瑞爾網路股份有限公司、GRYPH FRONTIER PTE. LTD或以上之關聯公司。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 錯誤訊息顯示 -->
+    <% if (typeof flash !== 'undefined' && flash) { %>
+    <div style="position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: #ff4444; color: #fff; padding: 0.75rem 1.5rem; border-radius: 0.5rem; z-index: 1000;">
+      <%= flash %>
+    </div>
+    <% } %>
+
+    <!-- 等待遮罩 -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 1.5rem; text-align: center; line-height: 100vh; z-index: 1000;">
+      正在抓取資料，請稍候…
+    </div>
+
+    <script>
+      const cookieForm = document.getElementById("cookieForm");
+      if (cookieForm) {
+          cookieForm.addEventListener("submit", function () {
+            document.getElementById("loadingOverlay").style.display = "block";
+          });
+      }
+
+      const startFetchBtn = document.getElementById("startFetchBtn");
+      if (startFetchBtn) {
+          startFetchBtn.closest("form").addEventListener("submit", function () {
+            document.getElementById("loadingOverlay").style.display = "block";
+          });
+      }
+
+      const uploadForm = document.getElementById("uploadForm");
+      if (uploadForm) {
+        uploadForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            document.getElementById("loadingOverlay").style.display = "block";
+            
+            const uid = document.getElementById("uploadUid").value;
+            const fileInput = document.getElementById("uploadFile");
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("請選擇檔案");
+                document.getElementById("loadingOverlay").style.display = "none";
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const logs = JSON.parse(evt.target.result);
+                    const res = await fetch('/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ method: 'upload', uid: uid, logs: logs })
+                    });
+                    
+                    if (res.redirected) {
+                        window.location.href = res.url;
+                    } else if (res.ok) {
+                        window.location.href = '/';
+                    } else {
+                        const errorText = await res.text();
+                        alert("上傳失敗: " + errorText);
+                        document.getElementById("loadingOverlay").style.display = "none";
+                    }
+                } catch (err) {
+                    alert("讀取檔案失敗或格式不正確: " + err.message);
+                    console.error(err);
+                    document.getElementById("loadingOverlay").style.display = "none";
+                }
+            };
+            reader.readAsText(file);
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>終末地 尋訪紀錄</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/css/your.css" />
+    <style>
+      .collapsible-content {
+        display: none;
+      }
+      .collapsible-content.open {
+        display: block;
+      }
+      .tshJ_L {
+        cursor: pointer;
+      }
+      /* Dashboard styles */
+      .dashboard-panel {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #121212;
+        border-radius: 0.5rem;
+        margin: 1rem;
+        color: #fff;
+        font-family: 'cwTeXHeiBold', 'Heiti TC', sans-serif;
+      }
+      .dashboard-card {
+        flex: 1;
+        min-width: 300px;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .dashboard-card h3 {
+        margin-top: 0;
+        color: #10d1fe;
+        font-size: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 0.5rem;
+      }
+      .dashboard-card p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin: 0.8rem 0;
+      }
+      .dashboard-card .highlight-number {
+        font-size: 1.3rem;
+        color: #f7ff00;
+        font-weight: bold;
+      }
+      
+      .cat-btn {
+        width: 100%;
+        padding: 0.8rem;
+        text-align: center;
+        background: rgba(255,255,255,0.05);
+        color: #ccc;
+        border: 1px solid #333;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .cat-btn.active {
+        background: rgba(27,209,254,0.2);
+        color: #1bd1fe;
+        border-color: #1bd1fe;
+      }
+      .cat-btn:hover:not(.active) {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+      }
+      .recent-gold-item {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body class="dark-mode" style="background-color: #000000; color: #e0e0e0">
+    
+    <div class="n9kTOc">
+      <div class="zpp1t9">
+        <div class="uUPDec">
+          <div class="Uqsjld">
+            <div class="MvFHTi">
+              <div>
+                <a href="/export" download style="display: block; width: 100%; height: 100%; color: inherit; text-decoration: none;">
+                  導出結果
+                </a>
+                <div class="kR9c6i"></div>
+              </div>
+              <div>
+                <a href="/logout" style="display: block; width: 100%; height: 100%; color: inherit; text-decoration: none;">
+                  登出
+                </a>
+                <div class="kR9c6i"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="HgfD8Q">
+          <div class="tshJ_L"><%= typeof serverName !== 'undefined' ? `[${serverName}] ` : '' %><%= nickname %> 的尋訪紀錄</div>
+        </div>
+      </div>
+      <div class="MMIY1i">
+        <div class="uYZr59"></div>
+      </div>
+    </div>
+
+    <div class="RHyFR2">
+      <!-- 側邊欄 -->
+      <div class="CAmS7u">
+        <div class="uLuxH3">
+          <img src="data:image/png;base64,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">
+          <div class="WetgH2">
+            <div></div>
+            <span>POOL SELECTOR</span>
+          </div>
+        </div>
+
+
+        <div class="nEG21w" style="overflow-y: auto;">
+          <div style="padding: 1rem; color: #fff;">
+            <!-- Category Toggles -->
+            <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; padding: 0 1rem; margin-top: 1rem;">
+              <button class="cat-btn active" data-cat="基礎尋訪">基礎尋訪</button>
+              <button class="cat-btn" data-cat="特許尋訪">特許尋訪</button>
+              <button class="cat-btn" data-cat="啟程尋訪">啟程尋訪</button>
+              <button class="cat-btn" data-cat="武庫申領">武庫申領</button>
+            </div>
+
+            <div style="margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; display: flex; align-items: flex-start;">
+              <input type="checkbox" id="filter-pool-all" checked style="margin-top: 3px; cursor: pointer;" />
+              <label for="filter-pool-all" style="margin-left: 0.5rem; font-size: 0.95rem; font-weight: bold; cursor: pointer; user-select: none; line-height: 1.3;">全選 / 全取消</label>
+            </div>
+            <% 
+              let uniquePoolsMap = new Map();
+              logs.forEach(log => {
+                let pName = log.poolName || `${log.poolId}（名稱未顯示）`;
+                if (!uniquePoolsMap.has(log.poolId)) {
+                  uniquePoolsMap.set(log.poolId, { pName, category: log.poolCategory });
+                }
+              });
+              let uniquePools = Array.from(uniquePoolsMap.entries());
+              uniquePools.forEach(([pId, param], i) => { 
+            %>
+              <!-- 添加 data-poolcat 屬性供 JS 隱藏非當前 category 的卡池 -->
+              <div class="pool-filter-item" data-poolcat="<%= param.category %>" style="margin-bottom: 0.8rem; display: flex; align-items: flex-start;">
+                <input type="checkbox" id="filter-pool-<%= i %>" class="pool-filter-cb" value="<%= pId %>" checked style="margin-top: 3px; cursor: pointer;" />
+                <label for="filter-pool-<%= i %>" style="margin-left: 0.5rem; font-size: 0.85rem; cursor: pointer; user-select: none; line-height: 1.3;"><%= param.pName %></label>
+              </div>
+            <% }); %>
+          </div>
+
+          <!-- Sidebar Footer Buttons -->
+          <div style="padding: 0 1rem 2rem 1rem; border-top: 1px solid #333; margin-top: 1rem; padding-top: 1.5rem;">
+            <a href="/export" download style="display: block; width: 100%; padding: 0.8rem; text-align: center; background: rgba(255,255,255,0.1); color: #fff; text-decoration: none; border-radius: 4px; margin-bottom: 0.8rem; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">導出結果</a>
+            <a href="/logout" style="display: block; width: 100%; padding: 0.8rem; text-align: center; background: rgba(27,209,254,0.2); color: #1bd1fe; text-decoration: none; border-radius: 4px; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='rgba(27,209,254,0.3)'" onmouseout="this.style.background='rgba(27,209,254,0.2)'">登出</a>
+          </div>
+        </div>
+      </div>
+      <!-- 主畫面 -->
+      <div class="RNJ708 pt2fh0"></div>
+
+      <div class="oFCHMT">
+
+        <!-- 一個 20vh 的空白 -->
+        <div style="height: 20vh;"></div>
+
+        <% const starClasses = { '6': 'UN5Fou', '5': 'A0qObD', '4': 'spIT3K', '3': 'Ff2rvO' }; %>
+
+        <!-- 統計資訊：分群（可折疊，預設展開） -->
+        <div class="HgfD8Q">
+          <div class="tshJ_L">統計資訊 ▲</div>
+          <div class="collapsible-content open">
+            <div class="KXADwl">
+              <div class="Ysu7ON"></div>
+              <span></span><span></span>
+            </div>
+            
+            <% const categoriesArr = ['基礎尋訪', '特許尋訪', '啟程尋訪', '武庫申領']; %>
+            <% categoriesArr.forEach(function(cat) { 
+                 const costPerPull = (cat === '武庫申領') ? 198 : 500;
+                 const currencyName = (cat === '武庫申領') ? '武庫配額' : '嵌晶玉';
+                 
+                 // Get total counts for this category
+                 let cStats = stats.starcounts[cat] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
+                 let cTotal = cStats['6'] + cStats['5'] + cStats['4'] + cStats['3'] + cStats['2'];
+                 let cCost = cTotal * costPerPull;
+                 
+                 // Avg pulls for gold (6-star for char, 5-star for weapon)
+                 let goldCount = cStats['6'];
+                 let avgPulls = goldCount > 0 ? (cTotal / goldCount).toFixed(2) : 0;
+                 let avgCost = goldCount > 0 ? (cCost / goldCount).toFixed(2) : 0;
+                 
+                 // Latest pull logic for this category
+                 // We find the first log that belongs to this category.
+                 let catLogs = logs.filter(l => l.poolCategory === cat);
+                 let lastLog = catLogs[0] || {};
+                 let cLastPullName = lastLog.poolName || "無紀錄";
+                 let cLastPullId = lastLog.poolId || "none";
+                 let cAccumulation = stats.countAcc[cLastPullId] || 0;
+                 
+                 let lpStats = stats.starcountsPool[cLastPullId] || { '6':0, '5':0, '4':0, '3':0, '2':0 };
+                 let lpTotal = lpStats['6'] + lpStats['5'] + lpStats['4'] + lpStats['3'] + lpStats['2'];
+            %>
+            <div class="dashboard-panel dashboard-cat-view" data-catview="<%= cat %>" style="display: none;">
+                <div class="dashboard-card">
+                    <h3>當前卡池狀態（<%= cat %>）</h3>
+                    <p>最近一次抽取的卡池為：<br/><span style="color: #fff; font-size: 1.3rem;"><%= cLastPullName %></span></p>
+                    <% if (cTotal > 0) { %>
+                    <p>在該卡池中一共有 <span class="highlight-number"><%= lpTotal %></span> 抽紀錄，距離上次出金已墊了 <span class="highlight-number"><%= cAccumulation %></span> 抽</p>
+                    <% } else { %>
+                    <p>無抽取紀錄</p>
+                    <% } %>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>總覽資料（<%= cat %>）</h3>
+                    <p>您一共投入了 <span class="highlight-number"><%= cTotal %></span> 抽<br/>共消耗 <span class="highlight-number" style="color: #C63A5A"><%= cCost %></span> <%= currencyName %></p>
+                    <p>
+                    <span style="color: #f7ff00"><%= cStats['6'] %></span> 次 6 星 (<%= cTotal > 0 ? (cStats['6']/cTotal*100).toFixed(1) : 0 %>%)， 
+                    <span style="color: #cc7a00"><%= cStats['5'] %></span> 次 5 星 (<%= cTotal > 0 ? (cStats['5']/cTotal*100).toFixed(1) : 0 %>%)， 
+                    <span style="color: #a231ff"><%= cStats['4'] %></span> 次 4 星 (<%= cTotal > 0 ? (cStats['4']/cTotal*100).toFixed(1) : 0 %>%)
+                    </p>
+                    <p>您的平均出金抽數為 <span class="highlight-number"><%= avgPulls %></span> 抽<br/>折合 <span class="highlight-number" style="color: #C63A5A"><%= avgCost %></span> <%= currencyName %></p>
+                </div>
+            </div>
+            <% }); %>
+
+          </div>
+        </div>
+        
+        <!-- 近期出金（可折疊，預設展開） -->
+        <div class="HgfD8Q">
+          <div class="tshJ_L">近期出金 ▲</div>
+          <div class="collapsible-content open">
+            <div class="KXADwl">
+              <div class="Ysu7ON"></div>
+              <span></span><span></span>
+            </div>
+              <div style="display: flex; justify-content: flex-start; margin-bottom: 0.5rem; padding-left: 13.5rem;">
+                 <span style="font-size: 0.9rem; color: #10d1fe; cursor: pointer; user-select: none; font-weight: bold;" onclick="toggleAllGroups('recent')">[ 全部摺疊 / 展開 ]</span>
+              </div>
+              <div class="mzlLY0">
+                <div class="pvfQQe">
+                  <div class="_P1qVa">獲得幹員（抽數）</div>
+                  <div class="Zs7Y7r">尋訪卡池</div>
+                  <div class="GETong">尋訪時間</div>
+                </div>
+                <div class="EkxzYd" id="recent-container">
+                <% const golds = logs.filter(item => (item.rarity === 6)); %>
+                <% if (golds.length === 0) { %>
+                    <div style="padding: 1rem; color: #aaa; text-align: center;">尚未獲得高稀有度項目</div>
+                <% } else { %>
+                    <% 
+                      let recentGroupsMap = new Map();
+                      golds.forEach(item => {
+                          let currentPoolName = item.poolName || `${item.poolId}（名稱未顯示）`;
+                          let currentPoolId = item.poolId;
+                          if (!recentGroupsMap.has(currentPoolId)) {
+                              recentGroupsMap.set(currentPoolId, { poolName: currentPoolName, poolId: currentPoolId, category: item.poolCategory, items: [] });
+                          }
+                          recentGroupsMap.get(currentPoolId).items.push(item);
+                      });
+                      let recentGroups = Array.from(recentGroupsMap.values());
+                    %>
+                    <% recentGroups.forEach(group => { 
+                        let pStats = stats.starcountsPool[group.poolId] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
+                        let pTotal = pStats['6'] + pStats['5'] + pStats['4'] + pStats['3'] + pStats['2'];
+                    %>
+                    <div class="pool-group-wrapper recent-gold-item" data-pool="<%= group.poolId %>" data-recordcat="<%= group.category %>" style="display: none;">
+                      <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= pTotal %>抽） ▲</div>
+                      <div class="collapsible-content open" style="margin-bottom: 0.5rem;">
+                        <% group.items.forEach(item => { %>
+                            <div class="gX_vOH">
+                                <div class="oX8Bos">
+                                    <div class="h1yWiG"><%= item.charName %></div>
+                                    <div class="feiJCc"><%= item.time %></div>
+                                </div>
+                                <div class="ORrqqm">
+                                    <div class="qcP3VO">
+                                    <% if (item.isNew) { %>
+                                        <div class="QnXVrG">NEW</div>
+                                    <% } %>
+                                    <% 
+                                       let sc = starClasses[item.rarity] || 'UN5Fou'; 
+                                       let lookupName = item.cnName || item.charName;
+                                       let imgSrc = (typeof operatorImages !== 'undefined' && operatorImages[lookupName]) || (typeof weaponImages !== 'undefined' && weaponImages[lookupName]);
+                                    %>
+                                    <img
+                                      class="<%= sc %>"
+                                      src="<%= imgSrc %>"
+                                      alt="<%= lookupName %>"
+                                    />
+      
+                                    <div class="NgcapS">
+                                      <%= item.charName %><% if (item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
+                                    </div>
+                                    <div class="rT1IyY <%= sc %>"></div>
+                                    </div>
+                                </div>
+                                <div class="xWZ6Cb">
+                                    <%= item.poolName %>
+                                </div>
+                                <div class="r9iEWS"><%= item.time %></div>
+                            </div>
+                        <% }) %>
+                      </div>
+                    </div>
+                    <% }) %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 尋訪記錄：顯示所有角色（可折疊，預設展開） -->
+        <div class="HgfD8Q">
+          <div class="tshJ_L">紀錄明細 ▲</div>
+          <div class="collapsible-content open">
+            <div class="KXADwl">
+              <div class="Ysu7ON"></div>
+              <span></span><span></span>
+            </div>
+            <div style="display: flex; justify-content: flex-start; margin-bottom: 0.5rem; padding-left: 13.5rem;">
+               <span style="font-size: 0.9rem; color: #f7ff00; cursor: pointer; user-select: none; font-weight: bold;" onclick="toggleAllGroups('history')">[ 全部摺疊 / 展開 ]</span>
+            </div>
+            <div class="mzlLY0">
+              <div class="pvfQQe">
+                <div class="_P1qVa">獲得項目</div>
+                <div class="Zs7Y7r">所屬卡池</div>
+                <div class="GETong">獲取時間</div>
+              </div>
+              <div class="EkxzYd" id="history-container">
+                <% 
+                  let groupsMap = new Map();
+                  logs.forEach(item => {
+                      let currentPoolName = item.poolName || `${item.poolId}（名稱未顯示）`;
+                      let currentPoolId = item.poolId;
+                      if (!groupsMap.has(currentPoolId)) {
+                          groupsMap.set(currentPoolId, { poolName: currentPoolName, poolId: currentPoolId, category: item.poolCategory, items: [] });
+                      }
+                      groupsMap.get(currentPoolId).items.push(item);
+                  });
+                  let allGroups = Array.from(groupsMap.values());
+                  
+                  allGroups.forEach(function(group) { 
+                    let pStats = stats.starcountsPool[group.poolId] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
+                    let pTotal = pStats['6'] + pStats['5'] + pStats['4'] + pStats['3'] + pStats['2'];
+                %>
+                <div class="pool-group-wrapper" data-pool="<%= group.poolId %>" data-recordcat="<%= group.category %>">
+                  <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= pTotal %>抽） ▲</div>
+                  <div class="collapsible-content open" style="margin-bottom: 0.5rem;">
+                    <% group.items.forEach(function(item) { 
+                      let sc = starClasses[item.rarity] || 'spIT3K';
+                    %>
+                  <div class="gX_vOH">
+                    <div class="oX8Bos">
+                      <div class="h1yWiG"><%= item.charName %></div>
+                      <div class="feiJCc"><%= item.time %></div>
+                    </div>
+                    <div class="ORrqqm">
+                      <div class="qcP3VO">
+                        <% if (item.isNew) { %>
+                        <div class="QnXVrG">NEW</div>
+                        <% } %>
+                        <% 
+                           let lookupName = item.cnName || item.charName;
+                           let imgSrc = (typeof operatorImages !== 'undefined' && operatorImages[lookupName]) || (typeof weaponImages !== 'undefined' && weaponImages[lookupName]);
+                        %>
+                        <img
+                          class="<%= sc %>"
+                          src="<%= imgSrc %>"
+                          alt="<%= lookupName %>"
+                        />
+
+                        <div class="NgcapS">
+                          <%= item.charName %><% if (item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
+                        </div>
+                        <div class="rT1IyY <%= sc %>"></div>
+                      </div>
+                    </div>
+                    <div class="xWZ6Cb">
+                      <%= item.poolName %>
+                    </div>
+                    <div class="r9iEWS"><%= item.time %></div>
+                  </div>
+                    <% }); %>
+                  </div>
+                </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  <!-- </div> -->
+  <script>
+    // ======= Category Switching functionality =======
+    let activeCategory = '基礎尋訪';
+
+    function updateCategoryView() {
+        // 1. Update Buttons
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            if (btn.getAttribute('data-cat') === activeCategory) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // 2. Update Checkboxes list rendering & checks
+        document.querySelectorAll('.pool-filter-item').forEach(item => {
+            if (item.getAttribute('data-poolcat') === activeCategory) {
+                item.style.display = 'flex';
+                // force check when switched
+                item.querySelector('input').checked = true;
+            } else {
+                item.style.display = 'none';
+                item.querySelector('input').checked = false;
+            }
+        });
+        
+        const toggleAll = document.getElementById('filter-pool-all');
+        if (toggleAll) toggleAll.checked = true;
+
+        // 3. Update Dashboard Panels
+        document.querySelectorAll('.dashboard-cat-view').forEach(panel => {
+            if (panel.getAttribute('data-catview') === activeCategory) {
+                panel.style.display = 'flex';
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+
+        // 4. Update History Groups Render
+        document.querySelectorAll('.pool-group-wrapper').forEach(wrapper => {
+            if (wrapper.getAttribute('data-recordcat') === activeCategory) {
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        });
+        
+        // 5. Update Recent Gold Render
+        document.querySelectorAll('.recent-gold-item').forEach(wrapper => {
+            if (wrapper.getAttribute('data-recordcat') === activeCategory) {
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        });
+    }
+
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            activeCategory = this.getAttribute('data-cat');
+            updateCategoryView();
+        });
+    });
+
+    // Initialize display
+    updateCategoryView();
+
+    // ======= Standard Interactions =======
+
+    // Mobile sidebar toggle
+    const mobileBtn = document.querySelector('.uYZr59');
+    const sidebar = document.querySelector('.CAmS7u');
+    if (mobileBtn && sidebar) {
+      mobileBtn.addEventListener('click', () => {
+        mobileBtn.classList.toggle('OH5OMA');
+        sidebar.classList.toggle('bWI6VY');
+      });
+    }
+
+    // Accordion effect
+    document.querySelectorAll(".tshJ_L").forEach((header) => {
+      header.addEventListener("click", () => {
+        const content = header.nextElementSibling;
+        if (content && content.classList.contains('collapsible-content')) {
+          content.classList.toggle("open");
+          header.innerHTML = header.innerHTML.endsWith("▼")
+            ? header.innerHTML.replace("▼", "▲")
+            : header.innerHTML.replace("▲", "▼");
+        }
+      });
+    });
+
+    // Toggle all groups
+    function toggleAllGroups(type) {
+      const container = document.getElementById(type + '-container');
+      if (!container) return;
+      
+      const headers = container.querySelectorAll('.pool-group-wrapper > .tshJ_L');
+      let anyOpen = false;
+      
+      headers.forEach(h => {
+        const content = h.nextElementSibling;
+        // only check visible items
+        if (h.parentElement.style.display !== 'none' && content && content.classList.contains('open')) {
+          anyOpen = true;
+        }
+      });
+      
+      headers.forEach(h => {
+        const content = h.nextElementSibling;
+        if (!content || h.parentElement.style.display === 'none') return;
+        
+        if (anyOpen) {
+           // Close all
+           if (content.classList.contains('open')) {
+             content.classList.remove('open');
+             h.innerHTML = h.innerHTML.replace('▲', '▼');
+           }
+        } else {
+           // Open all
+           if (!content.classList.contains('open')) {
+             content.classList.add('open');
+             h.innerHTML = h.innerHTML.replace('▼', '▲');
+           }
+        }
+      });
+    }
+
+    // Checkbox filter functionality
+    const cbs = document.querySelectorAll('.pool-filter-cb');
+    const toggleAll = document.getElementById('filter-pool-all');
+
+    if (toggleAll) {
+      toggleAll.addEventListener('change', function() {
+        const show = this.checked;
+        cbs.forEach(cb => {
+          // only impact visible items
+          if (cb.closest('.pool-filter-item').style.display !== 'none') {
+            if (cb.checked !== show) {
+              cb.checked = show;
+              cb.dispatchEvent(new Event('change'));
+            }
+          }
+        });
+      });
+    }
+
+    cbs.forEach(cb => {
+      cb.addEventListener('change', function() {
+        // filter history groups based on checkbox selection
+        // Since history has same logic (data-pool), we can hide those
+        const poolName = this.value;
+        const show = this.checked;
+        
+        if (toggleAll) {
+          const visibleCbs = Array.from(cbs).filter(c => c.closest('.pool-filter-item').style.display !== 'none');
+          const allChecked = visibleCbs.every(c => c.checked);
+          const someChecked = visibleCbs.some(c => c.checked);
+          toggleAll.checked = allChecked;
+          toggleAll.indeterminate = someChecked && !allChecked;
+        }
+
+        document.querySelectorAll(`.pool-group-wrapper[data-pool="${poolName}"]`).forEach(wrapper => {
+          // only apply logic if it belongs to current active category
+          if (wrapper.getAttribute('data-recordcat') === activeCategory) {
+              wrapper.style.display = show ? 'block' : 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
