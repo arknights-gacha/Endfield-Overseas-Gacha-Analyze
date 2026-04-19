@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <title>載入中 - 終末地國際服尋訪紀錄分析</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="/css/your.css" />
+  <style>
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      padding: 2rem;
+    }
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(16, 209, 254, 0.15);
+      border-top: 4px solid #10d1fe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 2rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-title {
+      color: #10d1fe;
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    .loading-status {
+      color: #ababab;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 420px;
+    }
+    .loading-status .step {
+      margin: 0.3rem 0;
+      transition: color 0.3s;
+    }
+    .loading-status .step.active {
+      color: #10d1fe;
+    }
+    .loading-status .step.done {
+      color: #4caf50;
+    }
+    .loading-status .step.error {
+      color: #ff4444;
+    }
+    .loading-progress {
+      width: 280px;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin: 1.5rem 0;
+      overflow: hidden;
+    }
+    .loading-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #10d1fe, #1bd1fe);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-container">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">正在獲取尋訪紀錄</div>
+    <div class="loading-progress">
+      <div class="loading-progress-bar" id="progressBar"></div>
+    </div>
+    <div class="loading-status">
+      <div class="step active" id="stepFetch">⏳ 正在從官方伺服器抓取紀錄...</div>
+      <div class="step" id="stepMerge">⏳ 合併與寫入資料庫...</div>
+      <div class="step" id="stepDone">⏳ 完成，即將跳轉...</div>
+    </div>
+    <div style="margin-top: 2rem; color: #666; font-size: 0.8rem;">
+      此過程依紀錄筆數約需 30 秒至 2 分鐘，請勿關閉此頁面。
+    </div>
+  </div>
+
+  <script>
+    const progressBar = document.getElementById('progressBar');
+    const stepFetch = document.getElementById('stepFetch');
+    const stepMerge = document.getElementById('stepMerge');
+    const stepDone  = document.getElementById('stepDone');
+
+    let progress = 5;
+    function setProgress(val) {
+      progress = Math.min(val, 100);
+      progressBar.style.width = progress + '%';
+    }
+
+    // Slowly animate progress while waiting
+    let ticker = setInterval(() => {
+      if (progress < 85) {
+        setProgress(progress + 0.5);
+      }
+    }, 500);
+
+    async function startFetch() {
+      setProgress(10);
+      stepFetch.classList.add('active');
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 115000); // 115s client timeout
+
+        const res = await fetch('/fetch-logs', {
+          method: 'POST',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          // Success! Direct response
+          clearInterval(ticker);
+          stepFetch.classList.remove('active');
+          stepFetch.classList.add('done');
+          stepFetch.textContent = '✅ 紀錄抓取完成';
+          setProgress(90);
+          stepMerge.classList.add('done');
+          stepMerge.textContent = '✅ 合併與寫入完成';
+          setProgress(100);
+          stepDone.classList.add('done');
+          stepDone.textContent = '✅ 完成！正在跳轉...';
+          setTimeout(() => { window.location.href = '/'; }, 800);
+          return;
+        } else {
+          throw new Error('Server returned ' + res.status);
+        }
+      } catch (e) {
+        // Fetch might have timed out (502) or aborted — the function is still running server-side
+        console.log('Fetch request ended:', e.message);
+        stepFetch.textContent = '⏳ 伺服器仍在處理中，等待完成...';
+        setProgress(60);
+        pollForReady();
+      }
+    }
+
+    function pollForReady() {
+      stepMerge.classList.add('active');
+      stepMerge.textContent = '⏳ 等待伺服器完成寫入...';
+
+      const poll = setInterval(async () => {
+        try {
+          const res = await fetch('/check-ready');
+          const data = await res.json();
+          if (data.ready) {
+            clearInterval(poll);
+            clearInterval(ticker);
+            stepFetch.classList.remove('active');
+            stepFetch.classList.add('done');
+            stepFetch.textContent = '✅ 紀錄抓取完成';
+            stepMerge.classList.remove('active');
+            stepMerge.classList.add('done');
+            stepMerge.textContent = '✅ 合併與寫入完成';
+            setProgress(100);
+            stepDone.classList.add('done');
+            stepDone.textContent = '✅ 完成！正在跳轉...';
+            setTimeout(() => { window.location.href = '/'; }, 800);
+          }
+        } catch (e) {
+          // Keep polling
+        }
+      }, 5000);
+    }
+
+    startFetch();
+  </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 module.exports = {
+    "庄方宜": "/tempimg/zhuang.png",
+    "洛茜": "/tempimg/rossi.png",
     "汤汤": "https://patchwiki.biligame.com/images/zmd/7/77/r9ebgilt12ikmtb20ubfqj80w6rc2jj.png",
     "伊冯": "https://patchwiki.biligame.com/images/zmd/a/ae/bgrz38uiuayh0gxayxkam2lhf8gctdg.png",
     "余烬": "https://patchwiki.biligame.com/images/zmd/8/8c/n88jkurosdzugukv6xuciz6qphxytgv.png",

@@ -118,22 +118,15 @@ app.post('/login', async (req, res) => {
             
             console.log(`Selected UID: ${uid}, serverId: ${serverId}`);
             
-            let logs = await fetchAllLogsSlowly(uid, serverId, oauthToken);
-            console.log(`Fetched ${logs.length} logs`);
+            // Save user info + pending fetch credentials immediately
+            await db.collection('endfieldUsers').doc(uid).set({
+                info: { uid, serverId, serverName, nickName },
+                pendingFetch: { serverId, oauthToken }
+            }, { merge: true });
             
-            const logsDocRef = db.collection('endfieldUsers').doc(uid).collection('data').doc('logs');
-            const logsDoc = await logsDocRef.get();
-            if (logsDoc.exists) {
-                const data = logsDoc.data();
-                let existing = data.jsonString ? JSON.parse(data.jsonString) : (data.records || []);
-                logs = mergeLogs(logs, existing);
-            }
-            
-            await db.collection('endfieldUsers').doc(uid).set({ info: { uid, serverId, serverName, nickName } }, { merge: true });
-            await logsDocRef.set({ jsonString: JSON.stringify(logs) });
-            
+            // Set cookie and redirect FAST (before Hosting's 60s proxy timeout)
             res.cookie('__session', uid, { signed: true, httpOnly: true });
-            return res.redirect('/');
+            return res.redirect('/loading');
         } else if (method === 'existing') {
             const uid = req.body.uid;
             const userDoc = await db.collection('endfieldUsers').doc(uid).get();
@@ -164,6 +157,73 @@ app.post('/login', async (req, res) => {
     } catch (e) {
         console.error(e);
         return res.render('login', { flash: e.toString(), roles: null, oauthToken: null });
+    }
+});
+
+// --- Async loading flow (avoids Firebase Hosting 60s proxy timeout) ---
+
+app.get('/loading', (req, res) => {
+    const uid = req.signedCookies.__session;
+    if (!uid) return res.redirect('/login');
+    res.render('loading');
+});
+
+app.post('/fetch-logs', async (req, res) => {
+    const uid = req.signedCookies.__session;
+    if (!uid) return res.status(401).json({ error: 'unauthorized' });
+    
+    try {
+        const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+        if (!userDoc.exists) return res.status(404).json({ error: 'user not found' });
+        
+        const pending = userDoc.data().pendingFetch;
+        if (!pending) return res.json({ success: true, message: 'already done' });
+        
+        const { serverId, oauthToken } = pending;
+        const info = userDoc.data().info || {};
+        
+        let logs = await fetchAllLogsSlowly(uid, serverId, oauthToken);
+        console.log(`Fetched ${logs.length} logs`);
+        
+        const logsDocRef = db.collection('endfieldUsers').doc(uid).collection('data').doc('logs');
+        const logsDoc = await logsDocRef.get();
+        if (logsDoc.exists) {
+            const data = logsDoc.data();
+            let existing = data.jsonString ? JSON.parse(data.jsonString) : (data.records || []);
+            logs = mergeLogs(logs, existing);
+        }
+        
+        await logsDocRef.set({ jsonString: JSON.stringify(logs) });
+        
+        // Remove pendingFetch flag
+        await db.collection('endfieldUsers').doc(uid).update({
+            pendingFetch: admin.firestore.FieldValue.delete()
+        });
+        
+        return res.json({ success: true });
+    } catch (e) {
+        console.error('fetch-logs error:', e);
+        // Even on error, clear pending so user doesn't get stuck
+        try {
+            await db.collection('endfieldUsers').doc(uid).update({
+                pendingFetch: admin.firestore.FieldValue.delete()
+            });
+        } catch (ignore) {}
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/check-ready', async (req, res) => {
+    const uid = req.signedCookies.__session;
+    if (!uid) return res.status(401).json({ ready: false });
+    
+    try {
+        const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+        if (!userDoc.exists) return res.json({ ready: false });
+        const hasPending = !!userDoc.data().pendingFetch;
+        return res.json({ ready: !hasPending });
+    } catch (e) {
+        return res.json({ ready: false });
     }
 });
 

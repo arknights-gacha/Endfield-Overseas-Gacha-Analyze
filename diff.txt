@@ -26,6 +26,10 @@
 <   bottom: -7.625rem;
 ---
 >   bottom: -5.625rem;
+1374c1374
+<     url(https://web-static.hg-cdn.com/arknights-tw/user/assets/images/side-bg.57fce4.png)
+---
+>     url(assets/images/side-bg.57fce4.png)
 1386a1387,1392
 >     position: fixed;
 >     top: 0;
@@ -115,17 +119,18 @@
 ---
 >   transition: height 0.3s ease 0.3s, width 0.3s ease 0.3s, opacity 0.3s linear,
 >     transform 0.05s linear, -webkit-transform 0.05s linear;
-1708,1714c1694
+1708,1710c1694
 <   -webkit-transition:
-<     height 0.3s ease 0.3s,
-<     width 0.3s ease 0.3s,
-<     opacity 0.3s linear;
-<   transition:
 <     height 0.3s ease 0.3s,
 <     width 0.3s ease 0.3s,
 ---
 >   -webkit-transition: height 0.3s ease 0.3s, width 0.3s ease 0.3s,
-1715a1696
+1712,1715c1696
+<   transition:
+<     height 0.3s ease 0.3s,
+<     width 0.3s ease 0.3s,
+<     opacity 0.3s linear;
+---
 >   transition: height 0.3s ease 0.3s, width 0.3s ease 0.3s, opacity 0.3s linear;
 1805,1807c1786,1788
 <   -webkit-user-select: none;
