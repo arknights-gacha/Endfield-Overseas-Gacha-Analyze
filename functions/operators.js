@@ -1,7 +1,7 @@
 module.exports = {
-    "庄方宜": "/tempimg/zhuang.png",
-    "洛茜": "/tempimg/rossi.png",
-    "汤汤": "https://patchwiki.biligame.com/images/zmd/7/77/r9ebgilt12ikmtb20ubfqj80w6rc2jj.png",
+    "庄方宜": "https://web-static.hg-cdn.com/endfield/official-v4/_next/static/media/zhuangfy.4369b1a5.png",
+    "洛茜": "https://web-static.hg-cdn.com/endfield/official-v4/_next/static/media/rossi.4431f348.png",
+    "汤汤": "https://web-static.hg-cdn.com/endfield/official-v4/_next/static/media/tangtang.049b8a47.png",
     "伊冯": "https://patchwiki.biligame.com/images/zmd/a/ae/bgrz38uiuayh0gxayxkam2lhf8gctdg.png",
     "余烬": "https://patchwiki.biligame.com/images/zmd/8/8c/n88jkurosdzugukv6xuciz6qphxytgv.png",
     "别礼": "https://patchwiki.biligame.com/images/zmd/2/28/9y3t937po61v0ftfv1wdwckrmmy7sel.png",

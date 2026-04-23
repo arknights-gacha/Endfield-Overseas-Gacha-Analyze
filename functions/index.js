@@ -37,22 +37,22 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser('firebase-arknights-secret'));
 
 app.get('/', async (req, res) => {
-    const uid = req.signedCookies.__session; // uid per server (Endfield uid)
-    if (!uid) {
+    const roleId = req.signedCookies.__session;
+    if (!roleId) {
         return res.redirect('/login');
     }
     
     try {
-        const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+        const userDoc = await db.collection('endfieldUsers').doc(roleId).get();
         if (!userDoc.exists) {
             return res.redirect('/login');
         }
         
         let info = userDoc.data().info || {};
-        let nickname = info.nickName || uid;
+        let nickname = info.nickName || roleId;
         let serverName = info.serverName || '';
         
-        const logsDoc = await db.collection('endfieldUsers').doc(uid).collection('data').doc('logs').get();
+        const logsDoc = await db.collection('endfieldUsers').doc(roleId).collection('data').doc('logs').get();
         let logs = [];
         if (logsDoc.exists) {
             const data = logsDoc.data();
@@ -66,7 +66,7 @@ app.get('/', async (req, res) => {
             stats: analyzed,
             nickname: nickname,
             serverName: serverName,
-            uid: uid,
+            uid: roleId,
             operatorImages: operatorImages,
             weaponImages: weaponImages
         });
@@ -111,44 +111,45 @@ app.post('/login', async (req, res) => {
             
         } else if (method === 'selectRole') {
             const uid = req.body.uid;
+            const roleId = req.body.roleId;
             const serverId = req.body.serverId;
             const serverName = req.body.serverName;
             const nickName = req.body.nickName;
             const oauthToken = req.body.oauthToken;
             
-            console.log(`Selected UID: ${uid}, serverId: ${serverId}`);
+            console.log(`Selected roleId: ${roleId}, uid: ${uid}, serverId: ${serverId}`);
             
-            // Save user info + pending fetch credentials immediately
-            await db.collection('endfieldUsers').doc(uid).set({
-                info: { uid, serverId, serverName, nickName },
-                pendingFetch: { serverId, oauthToken }
+            // Save user info + pending fetch credentials immediately (keyed by roleId)
+            await db.collection('endfieldUsers').doc(roleId).set({
+                info: { uid, roleId, serverId, serverName, nickName },
+                pendingFetch: { uid, serverId, oauthToken }
             }, { merge: true });
             
             // Set cookie and redirect FAST (before Hosting's 60s proxy timeout)
-            res.cookie('__session', uid, { signed: true, httpOnly: true });
+            res.cookie('__session', roleId, { signed: true, httpOnly: true });
             return res.redirect('/loading');
         } else if (method === 'existing') {
-            const uid = req.body.uid;
-            const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+            const roleId = req.body.uid;
+            const userDoc = await db.collection('endfieldUsers').doc(roleId).get();
             if (userDoc.exists) {
-                res.cookie('__session', uid, { signed: true, httpOnly: true });
+                res.cookie('__session', roleId, { signed: true, httpOnly: true });
                 return res.redirect('/');
             } else {
                 return res.render('login', { flash: '找不到該 ID 的紀錄', roles: null, oauthToken: null });
             }
         } else if (method === 'upload') {
             // Keep unchanged for local upload
-            const uid = req.body.uid;
+            const roleId = req.body.uid;
             const logs = req.body.logs;
-            if (!uid || uid.length < 5 || isNaN(uid)) {
+            if (!roleId || roleId.length < 5 || isNaN(roleId)) {
                 return res.status(400).send('請提供有效的 ID');
             }
             if (logs && Array.isArray(logs)) {
-                const logsDocRef = db.collection('endfieldUsers').doc(uid).collection('data').doc('logs');
-                await db.collection('endfieldUsers').doc(uid).set({ info: { uid: uid, nickName: uid } }, { merge: true });
+                const logsDocRef = db.collection('endfieldUsers').doc(roleId).collection('data').doc('logs');
+                await db.collection('endfieldUsers').doc(roleId).set({ info: { roleId: roleId, nickName: roleId } }, { merge: true });
                 await logsDocRef.set({ jsonString: JSON.stringify(logs) });
                 
-                res.cookie('__session', uid, { signed: true, httpOnly: true });
+                res.cookie('__session', roleId, { signed: true, httpOnly: true });
                 return res.redirect('/');
             } else {
                 return res.status(400).send('請提供 ID 與檔案格式錯誤');
@@ -163,29 +164,28 @@ app.post('/login', async (req, res) => {
 // --- Async loading flow (avoids Firebase Hosting 60s proxy timeout) ---
 
 app.get('/loading', (req, res) => {
-    const uid = req.signedCookies.__session;
-    if (!uid) return res.redirect('/login');
+    const roleId = req.signedCookies.__session;
+    if (!roleId) return res.redirect('/login');
     res.render('loading');
 });
 
 app.post('/fetch-logs', async (req, res) => {
-    const uid = req.signedCookies.__session;
-    if (!uid) return res.status(401).json({ error: 'unauthorized' });
+    const roleId = req.signedCookies.__session;
+    if (!roleId) return res.status(401).json({ error: 'unauthorized' });
     
     try {
-        const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+        const userDoc = await db.collection('endfieldUsers').doc(roleId).get();
         if (!userDoc.exists) return res.status(404).json({ error: 'user not found' });
         
         const pending = userDoc.data().pendingFetch;
         if (!pending) return res.json({ success: true, message: 'already done' });
         
-        const { serverId, oauthToken } = pending;
-        const info = userDoc.data().info || {};
+        const { uid, serverId, oauthToken } = pending;
         
         let logs = await fetchAllLogsSlowly(uid, serverId, oauthToken);
-        console.log(`Fetched ${logs.length} logs`);
+        console.log(`Fetched ${logs.length} logs for roleId ${roleId}`);
         
-        const logsDocRef = db.collection('endfieldUsers').doc(uid).collection('data').doc('logs');
+        const logsDocRef = db.collection('endfieldUsers').doc(roleId).collection('data').doc('logs');
         const logsDoc = await logsDocRef.get();
         if (logsDoc.exists) {
             const data = logsDoc.data();
@@ -196,7 +196,7 @@ app.post('/fetch-logs', async (req, res) => {
         await logsDocRef.set({ jsonString: JSON.stringify(logs) });
         
         // Remove pendingFetch flag
-        await db.collection('endfieldUsers').doc(uid).update({
+        await db.collection('endfieldUsers').doc(roleId).update({
             pendingFetch: admin.firestore.FieldValue.delete()
         });
         
@@ -205,7 +205,7 @@ app.post('/fetch-logs', async (req, res) => {
         console.error('fetch-logs error:', e);
         // Even on error, clear pending so user doesn't get stuck
         try {
-            await db.collection('endfieldUsers').doc(uid).update({
+            await db.collection('endfieldUsers').doc(roleId).update({
                 pendingFetch: admin.firestore.FieldValue.delete()
             });
         } catch (ignore) {}
@@ -214,11 +214,11 @@ app.post('/fetch-logs', async (req, res) => {
 });
 
 app.get('/check-ready', async (req, res) => {
-    const uid = req.signedCookies.__session;
-    if (!uid) return res.status(401).json({ ready: false });
+    const roleId = req.signedCookies.__session;
+    if (!roleId) return res.status(401).json({ ready: false });
     
     try {
-        const userDoc = await db.collection('endfieldUsers').doc(uid).get();
+        const userDoc = await db.collection('endfieldUsers').doc(roleId).get();
         if (!userDoc.exists) return res.json({ ready: false });
         const hasPending = !!userDoc.data().pendingFetch;
         return res.json({ ready: !hasPending });
@@ -228,18 +228,18 @@ app.get('/check-ready', async (req, res) => {
 });
 
 app.get('/export', async (req, res) => {
-    const uid = req.signedCookies.__session;
-    if (!uid) {
+    const roleId = req.signedCookies.__session;
+    if (!roleId) {
         return res.redirect('/login');
     }
     try {
-        const logsDoc = await db.collection('endfieldUsers').doc(uid).collection('data').doc('logs').get();
+        const logsDoc = await db.collection('endfieldUsers').doc(roleId).collection('data').doc('logs').get();
         if (!logsDoc.exists) {
             return res.status(404).send('No logs found.');
         }
         const data = logsDoc.data();
         const logs = data.jsonString ? JSON.parse(data.jsonString) : (data.records || []);
-        res.setHeader('Content-disposition', `attachment; filename=ef_visit_logs_${uid}.json`);
+        res.setHeader('Content-disposition', `attachment; filename=ef_visit_logs_${roleId}.json`);
         res.setHeader('Content-type', 'application/json');
         res.send(JSON.stringify(logs, null, 2));
     } catch (e) {

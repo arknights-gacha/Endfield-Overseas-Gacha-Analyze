@@ -32,6 +32,17 @@
         "function": "app",
         "region": "asia-east1"
       }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Referrer-Policy",
+            "value": "no-referrer"
+          }
+        ]
+      }
     ]
   }
 }

@@ -47,6 +47,7 @@ async function getRoles(accountToken) {
                         for (let role of binding.roles) {
                             roles.push({
                                 uid: binding.uid,
+                                roleId: role.roleId,
                                 serverId: role.serverId,
                                 serverName: role.serverName,
                                 nickName: role.nickName,
@@ -206,7 +207,18 @@ function analyzeLogs(logs) {
         '其他尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 } // For Joint or unknown
     };
     
+    // Track paid vs free counts per category
+    let catCounts = {
+        '基礎尋訪': { paid: 0, free: 0 },
+        '特許尋訪': { paid: 0, free: 0 },
+        '啟程尋訪': { paid: 0, free: 0 },
+        '武庫申領': { paid: 0, free: 0 },
+        '其他尋訪': { paid: 0, free: 0 }
+    };
+    
     let starcountsPool = {};
+    // Track paid vs free counts per pool
+    let poolCounts = {};
     let countAcc = {
         '基礎尋訪': 0,
         '特許尋訪': 0,
@@ -217,9 +229,9 @@ function analyzeLogs(logs) {
     
     for (let i = 0; i < logsCopy.length; i++) {
         let item = logsCopy[i];
-        // Note: Endfield rarities: characters can be 6, 5, 4. 
         let rarity = String(item.rarity);
         let poolId = item.poolId;
+        let isFree = !!item.isFree;
         
         let category = '其他尋訪';
         if (item.itemCategory === 'weapon') {
@@ -239,26 +251,44 @@ function analyzeLogs(logs) {
         if (!starcounts[category][rarity]) starcounts[category][rarity] = 0;
         starcounts[category][rarity]++;
         
+        // Track paid vs free per category
+        if (isFree) {
+            catCounts[category].free++;
+        } else {
+            catCounts[category].paid++;
+        }
+        
         if (!starcountsPool[poolId]) {
             starcountsPool[poolId] = { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 };
         }
         if (!starcountsPool[poolId][rarity]) starcountsPool[poolId][rarity] = 0;
         starcountsPool[poolId][rarity]++;
         
-        // Pity accumulation (per category, since standard rolls inherit standard rolls, etc.)
-        // wait, the user said "所有保底都不繼承" (No pity inheritance across pools).
-        // If Standard spans multiple poolIds but is always "standard", it's fine.
-        // For Special (special_1_0_1, special_1_2_1, etc.), do they inherit each other? 
-        // User didn't say. "各放各的". Let's accumulate per poolId.
+        // Track paid vs free per pool
+        if (!poolCounts[poolId]) {
+            poolCounts[poolId] = { paid: 0, free: 0 };
+        }
+        if (isFree) {
+            poolCounts[poolId].free++;
+        } else {
+            poolCounts[poolId].paid++;
+        }
         
-        if (!countAcc[poolId]) countAcc[poolId] = 0;
-        countAcc[poolId]++;
+        // Pity accumulation — FREE pulls do NOT count toward pity
+        if (!isFree) {
+            if (!countAcc[poolId]) countAcc[poolId] = 0;
+            countAcc[poolId]++;
+        }
         
         const isGold = (category === '武庫申領' && rarity === "5") || (category !== '武庫申領' && rarity === "6");
         
         if (isGold) {
-            logsCopy[i].interval = countAcc[poolId];
-            countAcc[poolId] = 0;
+            if (!isFree) {
+                // Only assign interval (pull count) for non-free golds
+                logsCopy[i].interval = countAcc[poolId];
+                countAcc[poolId] = 0;
+            }
+            // Free golds: no interval assigned (will show in recent golds without pull count)
         }
     }
     
@@ -268,7 +298,9 @@ function analyzeLogs(logs) {
         logs: logsCopy,
         starcounts,
         starcountsPool,
-        countAcc, // remaining pity per poolId
+        catCounts,   // { paid, free } per category
+        poolCounts,  // { paid, free } per poolId
+        countAcc,    // remaining pity per poolId (only paid pulls)
         totalPulls: logsCopy.length
     };
 }

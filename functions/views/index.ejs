@@ -192,31 +192,34 @@
                  
                  // Get total counts for this category
                  let cStats = stats.starcounts[cat] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
-                 let cTotal = cStats['6'] + cStats['5'] + cStats['4'] + cStats['3'] + cStats['2'];
-                 let cCost = cTotal * costPerPull;
+                 let cc = stats.catCounts[cat] || { paid: 0, free: 0 };
+                 let cPaid = cc.paid;
+                 let cFree = cc.free;
+                 let cTotal = cPaid + cFree;
+                 let cCost = cPaid * costPerPull;
                  
-                 // Avg pulls for gold (6-star for char, 5-star for weapon)
-                 let goldCount = cStats['6'];
-                 let avgPulls = goldCount > 0 ? (cTotal / goldCount).toFixed(2) : 0;
-                 let avgCost = goldCount > 0 ? (cCost / goldCount).toFixed(2) : 0;
+                 // Avg pulls for gold — only count non-free golds and non-free pulls
+                 let paidGolds = logs.filter(l => l.poolCategory === cat && l.rarity === 6 && !l.isFree).length;
+                 let avgPulls = paidGolds > 0 ? (cPaid / paidGolds).toFixed(2) : 0;
+                 let avgCost = paidGolds > 0 ? (cCost / paidGolds).toFixed(2) : 0;
                  
                  // Latest pull logic for this category
-                 // We find the first log that belongs to this category.
                  let catLogs = logs.filter(l => l.poolCategory === cat);
                  let lastLog = catLogs[0] || {};
                  let cLastPullName = lastLog.poolName || "無紀錄";
                  let cLastPullId = lastLog.poolId || "none";
                  let cAccumulation = stats.countAcc[cLastPullId] || 0;
                  
-                 let lpStats = stats.starcountsPool[cLastPullId] || { '6':0, '5':0, '4':0, '3':0, '2':0 };
-                 let lpTotal = lpStats['6'] + lpStats['5'] + lpStats['4'] + lpStats['3'] + lpStats['2'];
+                 let lpCounts = stats.poolCounts[cLastPullId] || { paid: 0, free: 0 };
+                 let lpPaid = lpCounts.paid;
+                 let lpFree = lpCounts.free;
             %>
             <div class="dashboard-panel dashboard-cat-view" data-catview="<%= cat %>" style="display: none;">
                 <div class="dashboard-card">
                     <h3>當前卡池狀態（<%= cat %>）</h3>
                     <p>最近一次抽取的卡池為：<br/><span style="color: #fff; font-size: 1.3rem;"><%= cLastPullName %></span></p>
                     <% if (cTotal > 0) { %>
-                    <p>在該卡池中一共有 <span class="highlight-number"><%= lpTotal %></span> 抽紀錄，距離上次出金已墊了 <span class="highlight-number"><%= cAccumulation %></span> 抽</p>
+                    <p>在該卡池中一共有 <span class="highlight-number"><%= lpPaid %></span> 抽<% if (lpFree > 0) { %>＋<span style="color: #4caf50; font-size: 1.3rem; font-weight: bold;"><%= lpFree %></span> 贈<% } %>紀錄，距離上次出金已墊了 <span class="highlight-number"><%= cAccumulation %></span> 抽</p>
                     <% } else { %>
                     <p>無抽取紀錄</p>
                     <% } %>
@@ -224,13 +227,13 @@
                 
                 <div class="dashboard-card">
                     <h3>總覽資料（<%= cat %>）</h3>
-                    <p>您一共投入了 <span class="highlight-number"><%= cTotal %></span> 抽<br/>共消耗 <span class="highlight-number" style="color: #C63A5A"><%= cCost %></span> <%= currencyName %></p>
+                    <p>您一共投入了 <span class="highlight-number"><%= cPaid %></span> 抽<% if (cFree > 0) { %>＋<span style="color: #4caf50; font-size: 1.3rem; font-weight: bold;"><%= cFree %></span> 贈<% } %><br/>共消耗 <span class="highlight-number" style="color: #C63A5A"><%= cCost %></span> <%= currencyName %>（僅計付費抽）</p>
                     <p>
                     <span style="color: #f7ff00"><%= cStats['6'] %></span> 次 6 星 (<%= cTotal > 0 ? (cStats['6']/cTotal*100).toFixed(1) : 0 %>%)， 
                     <span style="color: #cc7a00"><%= cStats['5'] %></span> 次 5 星 (<%= cTotal > 0 ? (cStats['5']/cTotal*100).toFixed(1) : 0 %>%)， 
                     <span style="color: #a231ff"><%= cStats['4'] %></span> 次 4 星 (<%= cTotal > 0 ? (cStats['4']/cTotal*100).toFixed(1) : 0 %>%)
                     </p>
-                    <p>您的平均出金抽數為 <span class="highlight-number"><%= avgPulls %></span> 抽<br/>折合 <span class="highlight-number" style="color: #C63A5A"><%= avgCost %></span> <%= currencyName %></p>
+                    <p>您的平均出金抽數為 <span class="highlight-number"><%= avgPulls %></span> 抽（不含贈抽）<br/>折合 <span class="highlight-number" style="color: #C63A5A"><%= avgCost %></span> <%= currencyName %></p>
                 </div>
             </div>
             <% }); %>
@@ -273,11 +276,12 @@
                       let recentGroups = Array.from(recentGroupsMap.values());
                     %>
                     <% recentGroups.forEach(group => { 
-                        let pStats = stats.starcountsPool[group.poolId] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
-                        let pTotal = pStats['6'] + pStats['5'] + pStats['4'] + pStats['3'] + pStats['2'];
+                        let rpCounts = stats.poolCounts[group.poolId] || { paid: 0, free: 0 };
+                        let rpPaid = rpCounts.paid;
+                        let rpFree = rpCounts.free;
                     %>
                     <div class="pool-group-wrapper recent-gold-item" data-pool="<%= group.poolId %>" data-recordcat="<%= group.category %>" style="display: none;">
-                      <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= pTotal %>抽） ▲</div>
+                      <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= rpPaid %>抽<% if (rpFree > 0) { %>＋<%= rpFree %>贈<% } %>） ▲</div>
                       <div class="collapsible-content open" style="margin-bottom: 0.5rem;">
                         <% group.items.forEach(item => { %>
                             <div class="gX_vOH">
@@ -290,6 +294,9 @@
                                     <% if (item.isNew) { %>
                                         <div class="QnXVrG">NEW</div>
                                     <% } %>
+                                    <% if (item.isFree) { %>
+                                        <div class="FREEQnXVrG">FREE</div>
+                                    <% } %>
                                     <% 
                                        let sc = starClasses[item.rarity] || 'UN5Fou'; 
                                        let lookupName = item.cnName || item.charName;
@@ -299,10 +306,11 @@
                                       class="<%= sc %>"
                                       src="<%= imgSrc %>"
                                       alt="<%= lookupName %>"
+                                      referrerpolicy="no-referrer"
                                     />
       
                                     <div class="NgcapS">
-                                      <%= item.charName %><% if (item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
+                                      <%= item.charName %><% if (!item.isFree && item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
                                     </div>
                                     <div class="rT1IyY <%= sc %>"></div>
                                     </div>
@@ -353,11 +361,12 @@
                   let allGroups = Array.from(groupsMap.values());
                   
                   allGroups.forEach(function(group) { 
-                    let pStats = stats.starcountsPool[group.poolId] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
-                    let pTotal = pStats['6'] + pStats['5'] + pStats['4'] + pStats['3'] + pStats['2'];
+                    let hpCounts = stats.poolCounts[group.poolId] || { paid: 0, free: 0 };
+                    let hpPaid = hpCounts.paid;
+                    let hpFree = hpCounts.free;
                 %>
                 <div class="pool-group-wrapper" data-pool="<%= group.poolId %>" data-recordcat="<%= group.category %>">
-                  <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= pTotal %>抽） ▲</div>
+                  <div class="tshJ_L" style="background: rgba(255,255,255,0.05); margin: 6px 0 2px 0; height: 2rem; padding: 4px 15px; font-size: 1rem; line-height: 1.5; color: #f7ff00; border-radius: 4px; border-left: 4px solid #f7ff00;"><%= group.poolName %>（<%= hpPaid %>抽<% if (hpFree > 0) { %>＋<%= hpFree %>贈<% } %>） ▲</div>
                   <div class="collapsible-content open" style="margin-bottom: 0.5rem;">
                     <% group.items.forEach(function(item) { 
                       let sc = starClasses[item.rarity] || 'spIT3K';
@@ -372,7 +381,9 @@
                         <% if (item.isNew) { %>
                         <div class="QnXVrG">NEW</div>
                         <% } %>
-                        <% 
+                        <% if (item.isFree) { %>
+                        <div class="FREEQnXVrG">FREE</div>
+                        <% } %>                        <% 
                            let lookupName = item.cnName || item.charName;
                            let imgSrc = (typeof operatorImages !== 'undefined' && operatorImages[lookupName]) || (typeof weaponImages !== 'undefined' && weaponImages[lookupName]);
                         %>
@@ -380,10 +391,11 @@
                           class="<%= sc %>"
                           src="<%= imgSrc %>"
                           alt="<%= lookupName %>"
+                          referrerpolicy="no-referrer"
                         />
 
                         <div class="NgcapS">
-                          <%= item.charName %><% if (item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
+                          <%= item.charName %><% if (!item.isFree && item.interval !== undefined && item.interval !== null) { %>（<%= item.interval %>）<% } %>
                         </div>
                         <div class="rT1IyY <%= sc %>"></div>
                       </div>
