@@ -10,6 +10,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <title>登入頁 - 終末地國際服尋訪紀錄分析</title>
+    <% if (typeof canonicalUrl !== 'undefined') { %>
+    <link rel="canonical" href="<%= canonicalUrl %>" />
+    <% } %>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/css/your.css" />
     <style>
@@ -84,10 +87,37 @@
     </style>
   </head>
   <body class="dark-mode" style="background-color: #000000; color: #e0e0e0">
+
     <!-- 大標題 -->
     <div class="HgfD8Q" style="padding: 1.5rem; text-align: center">
       <div class="tshJ_L" style="font-size: 1.5rem">
         明日方舟：終末地國際服尋訪紀錄分析
+      </div>
+    </div>
+
+    <!-- 最新消息 -->
+    <div class="x82bAA">
+      <div class="tshJ_L">最新消息</div>
+      <div class="ab1yWq">
+        <div class="wYL2n2 Q25EOd"></div>
+        <div class="wYL2n2 xW0Sk9"></div>
+        <div class="wYL2n2 m8kOmo"></div>
+        <div class="wYL2n2 Mric6f"></div>
+        <div class="Xo6v7v">
+          <!-- <div style="margin-bottom: 0.8rem; background-color: rgba(27, 209, 254, 0.15); border: 1px solid #1bd1fe; border-radius: 0.25rem; padding: 0.6rem; color: #fff;">
+            <strong>✨ <a href="https://endfield-gacha.web.app/" target="_blank" style="color: #1bd1fe; text-decoration: underline; padding: 0 0.2rem;">終末地尋訪記錄分析</a>現已上線！（雖然還沒包含插件跟APP）</strong>
+          </div> -->
+          <div style="margin-bottom: 0.8rem; background-color: rgba(27, 209, 254, 0.15); border: 1px solid #1bd1fe; border-radius: 0.25rem; padding: 0.6rem; color: #fff;">
+            <strong>🌐 本網站僅支援「明日方舟：終末地」海外伺服器<br>點擊連結前往
+              <a href="https://endgacha.kwer.top/" target="_blank" style="color: #1bd1fe; text-decoration: underline; padding: 0 0.2rem;">中國伺服器（外站）</a>、
+              <a href="https://arknights-txwy-gacha.web.app" target="_blank" style="color: #1bd1fe; text-decoration: underline; padding: 0 0.2rem;">明日方舟繁中服（台服）</a>、
+              <a href="https://arknights-gacha.web.app" target="_blank" style="color: #1bd1fe; text-decoration: underline; padding: 0 0.2rem;">明日方舟國際服（英日韓服）</a>
+              尋訪紀錄分析</strong>
+          </div>
+          <div style="margin-bottom: 0.8rem; background-color: rgba(27, 209, 254, 0.15); border: 1px solid #1bd1fe; border-radius: 0.25rem; padding: 0.6rem; color: #fff;">
+            瀏覽器插件現正開發中，敬請期待！</strong>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -211,17 +241,38 @@
         <div class="wYL2n2 Mric6f"></div>
         <div class="Xo6v7v">
           <div>
-            1：首次使用必須先獲取或上傳，以下是方法一（網站獲取）的使用說明：<br />
-            2：請先確認您已經在 <a href="https://user.gryphline.com/" target="_blank" style="color:#10d1fe">Gryphline 官網</a> 登入您的帳號。<br />
-            3：點擊此連結前往憑證頁面：<a href="https://web-api.gryphline.com/cookie_store/account_token" target="_blank" style="color:#10d1fe">https://web-api.gryphline.com/cookie_store/account_token</a><br />
-            4：請將該頁面顯示的整段文字全部複製。<br />
-            5：回到本站，將複製的文字貼上到「登入憑證 (Account Token)」欄位中，然後點擊「驗證並選擇角色」。<br />
-            6：選擇您遊玩的伺服器帳號後，系統便會自動去官網載入所有的角色與武器抽卡紀錄！
+            首次使用必須先獲取或上傳，以下是方法一（網站獲取）的使用說明：<br />
+            1：請先確認您已經在 <a href="https://user.gryphline.com/" target="_blank" style="color:#10d1fe">Gryphline 官網</a> 登入您的帳號。<br />
+            2：點擊此連結前往憑證頁面：<a href="https://web-api.gryphline.com/cookie_store/account_token" target="_blank" style="color:#10d1fe">https://web-api.gryphline.com/cookie_store/account_token</a><br />
+            3：請將該頁面顯示的整段文字全部複製。<br />
+            4：回到本站，將複製的文字貼上到「登入憑證 (Account Token)」欄位中，然後點擊「驗證並選擇角色」。<br />
+            5：選擇您遊玩的伺服器帳號後，系統便會自動去官網載入所有的角色與武器抽卡紀錄！
           </div>
         </div>
       </div>
     </div>
 
+    <!-- 工具簡介 (SEO 優化區塊) -->
+    <div class="x82bAA" style="max-width: 800px; margin: 0 auto;">
+      <div class="tshJ_L">關於本工具</div>
+      <div class="ab1yWq">
+        <div class="wYL2n2 Q25EOd"></div>
+        <div class="wYL2n2 xW0Sk9"></div>
+        <div class="wYL2n2 m8kOmo"></div>
+        <div class="wYL2n2 Mric6f"></div>
+        <div class="Xo6v7v">
+          <div style="line-height: 1.6; color: #ccc; margin-bottom: 0.5rem;">
+            本站是一個專為《明日方舟：終末地》國際服（Gryphline 平台）玩家量身打造的<strong>抽卡紀錄導出、分析與視覺化統計工具</strong>。透過我們獨家研發的瀏覽器擴充套件或直接讀取授權 Token，您可以一鍵安全地從官方伺服器獲取您的尋訪歷史紀錄。
+          </div>
+          <div style="line-height: 1.6; color: #ccc;">
+            <strong>主要功能與特色：</strong><br>
+            • <strong>各卡池獨立統計</strong>：自動區分並計算「基礎尋訪」、「特許尋訪」、「啟程尋訪」與「武庫申領」的已墊保底抽數。<br>
+            • <strong>免費與付費抽數分離</strong>：精準辨識遊戲內的「免費贈送抽次（isFree）」，將其與付費抽數分開顯示，真實反映您的成本投入。<br>
+            • <strong>安全與隱私第一</strong>：本站絕不保存您的登入憑證 (Account Token)，獲取紀錄可以自由以 JSON 格式匯出或清除。<br>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 注意事項 -->
     <div class="x82bAA">
@@ -257,6 +308,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 給一個空間防止網頁顯示不全 -->
+    <div style="height: 4rem;"></div>
 
     <!-- 錯誤訊息顯示 -->
     <% if (typeof flash !== 'undefined' && flash) { %>
@@ -330,5 +384,6 @@
         });
       }
     </script>
+
   </body>
 </html>

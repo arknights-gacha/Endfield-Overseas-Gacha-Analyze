@@ -7,6 +7,9 @@
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>終末地 尋訪紀錄</title>
+    <% if (typeof canonicalUrl !== 'undefined') { %>
+    <link rel="canonical" href="<%= canonicalUrl %>" />
+    <% } %>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/css/your.css" />
     <style>
@@ -227,7 +230,7 @@
                 
                 <div class="dashboard-card">
                     <h3>總覽資料（<%= cat %>）</h3>
-                    <p>您一共投入了 <span class="highlight-number"><%= cPaid %></span> 抽<% if (cFree > 0) { %>＋<span style="color: #4caf50; font-size: 1.3rem; font-weight: bold;"><%= cFree %></span> 贈<% } %><br/>共消耗 <span class="highlight-number" style="color: #C63A5A"><%= cCost %></span> <%= currencyName %>（僅計付費抽）</p>
+                    <p>您一共投入了 <span class="highlight-number"><%= cPaid %></span> 抽<% if (cFree > 0) { %>＋<span style="color: #4caf50; font-size: 1.3rem; font-weight: bold;"><%= cFree %></span> 贈<% } %><br/>折合 <span class="highlight-number" style="color: #C63A5A"><%= cCost %></span> <%= currencyName %>（僅計付費抽）</p>
                     <p>
                     <span style="color: #f7ff00"><%= cStats['6'] %></span> 次 6 星 (<%= cTotal > 0 ? (cStats['6']/cTotal*100).toFixed(1) : 0 %>%)， 
                     <span style="color: #cc7a00"><%= cStats['5'] %></span> 次 5 星 (<%= cTotal > 0 ? (cStats['5']/cTotal*100).toFixed(1) : 0 %>%)， 

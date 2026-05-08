@@ -33,6 +33,12 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Set canonical URL for SEO indexing
+app.use((req, res, next) => {
+    let path = req.originalUrl.split('?')[0]; // Ignore query strings for canonical purposes
+    res.locals.canonicalUrl = `https://endfield-gacha.web.app${path}`;
+    next();
+});
 const cookieParser = require('cookie-parser');
 app.use(cookieParser('firebase-arknights-secret'));
 
