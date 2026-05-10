@@ -280,7 +280,7 @@ function analyzeLogs(logs) {
             countAcc[poolId]++;
         }
         
-        const isGold = (category === '武庫申領' && rarity === "5") || (category !== '武庫申領' && rarity === "6");
+        const isGold = (rarity === "6");
         
         if (isGold) {
             if (!isFree) {
