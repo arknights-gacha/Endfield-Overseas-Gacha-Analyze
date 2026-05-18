@@ -135,6 +135,7 @@
             <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; padding: 0 1rem; margin-top: 1rem;">
               <button class="cat-btn active" data-cat="基礎尋訪">基礎尋訪</button>
               <button class="cat-btn" data-cat="特許尋訪">特許尋訪</button>
+              <button class="cat-btn" data-cat="輝光慶典">輝光慶典</button>
               <button class="cat-btn" data-cat="啟程尋訪">啟程尋訪</button>
               <button class="cat-btn" data-cat="武庫申領">武庫申領</button>
             </div>
@@ -188,7 +189,7 @@
               <span></span><span></span>
             </div>
             
-            <% const categoriesArr = ['基礎尋訪', '特許尋訪', '啟程尋訪', '武庫申領']; %>
+            <% const categoriesArr = ['基礎尋訪', '特許尋訪', '輝光慶典', '啟程尋訪', '武庫申領']; %>
             <% categoriesArr.forEach(function(cat) { 
                  const costPerPull = (cat === '武庫申領') ? 198 : 500;
                  const currencyName = (cat === '武庫申領') ? '武庫配額' : '嵌晶玉';

@@ -196,21 +196,22 @@ function analyzeLogs(logs) {
     let logsCopy = JSON.parse(JSON.stringify(logs));
     logsCopy.reverse(); // Time Ascending
     
-    // We group them by 4 categories as requested: 基礎尋訪, 特許尋訪, 啟程尋訪, 武庫申領
-    // note: "Joint" is skipped in the dashboard, but we analyze it just in case.
+    // We group them by 5 categories as requested: 基礎尋訪, 特許尋訪, 輝光慶典, 啟程尋訪, 武庫申領
     
     let starcounts = {
         '基礎尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 },
         '特許尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 },
+        '輝光慶典': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 },
         '啟程尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 },
         '武庫申領': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 },
-        '其他尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 } // For Joint or unknown
+        '其他尋訪': { '6': 0, '5': 0, '4': 0, '3': 0, '2': 0 } // For unknown
     };
     
     // Track paid vs free counts per category
     let catCounts = {
         '基礎尋訪': { paid: 0, free: 0 },
         '特許尋訪': { paid: 0, free: 0 },
+        '輝光慶典': { paid: 0, free: 0 },
         '啟程尋訪': { paid: 0, free: 0 },
         '武庫申領': { paid: 0, free: 0 },
         '其他尋訪': { paid: 0, free: 0 }
@@ -222,6 +223,7 @@ function analyzeLogs(logs) {
     let countAcc = {
         '基礎尋訪': 0,
         '特許尋訪': 0,
+        '輝光慶典': 0,
         '啟程尋訪': 0,
         '武庫申領': 0,
         '其他尋訪': 0
@@ -244,6 +246,8 @@ function analyzeLogs(logs) {
                 category = '啟程尋訪';
             } else if (poolId && poolId.startsWith('special')) {
                 category = '特許尋訪';
+            } else if (poolId && poolId.startsWith('joint')) {
+                category = '輝光慶典';
             }
             item.poolCategory = category;
         }

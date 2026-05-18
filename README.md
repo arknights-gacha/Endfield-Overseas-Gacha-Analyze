@@ -12,7 +12,7 @@
 * **Dynamic Frontend / 動態前端介面**: 採用 EJS 模板引擎，並提供即時運算分析前端渲染，支援手機與電腦的響應式 (Responsive) 排版。
 
 * **Enhanced Analytics**: Advanced analysis interface supporting layered collapsing of consecutive pull histories, "pity" accumulation statistics across gacha pools, and complete token-binding integration.
-* **Enhanced Analytics / 進階資料分析**: 進階的分析介面，支援連續抽出歷史的分層折疊、跨卡池（如：基礎尋訪、特許尋訪、啟程尋訪、武庫申領）的「已墊」累積抽數獨立統計。
+* **Enhanced Analytics / 進階資料分析**: 進階的分析介面，支援連續抽出歷史的分層折疊、跨卡池（如：基礎尋訪、特許尋訪、輝光慶典、啟程尋訪、武庫申領）的「已墊」累積抽數獨立統計。
 
 * **Security & Cost Control**: Sets the maximum server execution instances (`maxInstances: 3`) and strict timeout policies, ensuring no extra paid quota is consumed under the Blaze billing plan.
 * **Security & Cost Control / 安全與成本控制**: 設定伺服器最高執行實例 (`maxInstances: 3`) 以及嚴格的請求時長限制保護，保障 Blaze 計費方案下不花費任何額外的付費額度。
