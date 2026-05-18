@@ -1,5 +1,7 @@
-# Copyright item
+# OS files
+.DS_Store
 
+# Copyright item
 public/*
 
 # Logs
