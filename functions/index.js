@@ -259,4 +259,4 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-exports.app = onRequest({ region: "asia-east1", invoker: "public", maxInstances: 3, memory: "256MiB", timeoutSeconds: 120 }, app);
+exports.app = onRequest({ region: "asia-east1", invoker: "public", maxInstances: 20, concurrency: 40, memory: "256MiB", timeoutSeconds: 120 }, app);

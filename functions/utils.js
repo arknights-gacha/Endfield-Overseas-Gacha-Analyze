@@ -193,7 +193,7 @@ function mergeLogs(records, previousRecords) {
 }
 
 function analyzeLogs(logs) {
-    let logsCopy = JSON.parse(JSON.stringify(logs));
+    let logsCopy = logs;
     logsCopy.reverse(); // Time Ascending
     
     // We group them by 5 categories as requested: 基礎尋訪, 特許尋訪, 輝光慶典, 啟程尋訪, 武庫申領
