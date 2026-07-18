@@ -193,7 +193,8 @@ function mergeLogs(records, previousRecords) {
 }
 
 function analyzeLogs(logs) {
-    let logsCopy = logs;
+    // 僅供前端顯示與統計：過濾掉非抽卡紀錄 (如尋訪情報書)，保留舊版無 kind 的紀錄
+    let logsCopy = logs.filter(item => !item.kind || item.kind === "draw");
     logsCopy.reverse(); // Time Ascending
     
     // We group them by 5 categories as requested: 基礎尋訪, 特許尋訪, 輝光慶典, 啟程尋訪, 武庫申領
