@@ -65,7 +65,7 @@ def run_crawler():
     # 寫入 operators.js
     with open(op_output_file, 'w', encoding='utf-8') as f:
         f.write('module.exports = ')
-        json.dump(op_map, f, ensure_ascii=False, indent=4)
+        json.dump(op_map, f, ensure_ascii=False, indent=4, sort_keys=True)
         f.write(';\n')
         
     print(f'成功！總共擷取了 {len(op_map)} 位幹員，已輸出至 {op_output_file}。')
@@ -84,7 +84,7 @@ def run_crawler():
     # 寫入 weapons.js
     with open(wp_output_file, 'w', encoding='utf-8') as f:
         f.write('module.exports = ')
-        json.dump(wp_map, f, ensure_ascii=False, indent=4)
+        json.dump(wp_map, f, ensure_ascii=False, indent=4, sort_keys=True)
         f.write(';\n')
 
     print(f'成功！總共擷取了 {len(wp_map)} 把武器，已輸出至 {wp_output_file}。')
