@@ -19,6 +19,12 @@ const CHAR_POOL_TYPES = [
 const CHAR_TYPE_TO_CATEGORY = Object.fromEntries(CHAR_POOL_TYPES.map(p => [p.poolType, p.category]));
 
 const WEAPON_CATEGORY = "武庫申領";
+
+// 診斷用的接住桶，不是真實存在的卡池。
+// 它必須存在於 ALL_CATEGORIES（否則 categoryOf 回傳的分類會在 starcounts 裡查不到而炸掉），
+// 但**只在真的有紀錄時才對使用者顯示** —— 見 index.ejs 的 categoriesArr 推導。
+// 正常抓取的紀錄進不到這裡（角色側一定被標上 5 個 enum 之一，武器側一律歸武庫申領），
+// 真正會觸發的是 index.js 的 method === 'upload' 這條零驗證路徑，以及形狀異常的舊紀錄。
 const UNKNOWN_CATEGORY = "其他尋訪";
 
 // 顯示順序：角色池在前，未知落袋，武器池最後（不與角色池混在一起）
@@ -407,6 +413,7 @@ function analyzeLogs(logs) {
         poolCounts,  // { paid, free } per poolId
         countAcc,    // remaining pity per pityKey (only paid pulls)
         poolPityKey, // poolId -> pityKey（重構池是 rerun:<poolName>，其餘就是 poolId 本身）
+        unknownCategory: UNKNOWN_CATEGORY, // view 用它判斷哪個分類要「有紀錄才顯示」
         totalPulls: logsCopy.length
     };
 }

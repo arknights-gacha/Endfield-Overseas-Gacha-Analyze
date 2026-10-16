@@ -144,10 +144,19 @@
             <!-- Category Toggles -->
             <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; padding: 0 1rem; margin-top: 1rem;">
               <%
-                // 分類與順序一律來自後端的 stats.starcounts —— utils.js 的 ALL_CATEGORIES 是唯一來源。
-                // 刻意不按筆數過濾：所有分類常駐顯示，所以未來冒出新型態（落入「其他尋訪」）
-                // 也會看得到，而不是靜默消失。
-                const categoriesArr = Object.keys(stats.starcounts);
+                // 分類與順序一律來自後端的 stats.starcounts —— utils.js 的 ALL_CATEGORIES 是唯一來源，
+                // 樣板不自己排序也不硬編碼清單。
+                //
+                // 真實卡池分類一律常駐顯示（即使該使用者 0 筆），這樣沒抽過的人也看得到頁籤。
+                // 唯一例外是 stats.unknownCategory（其他尋訪）—— 它是診斷用的接住桶而非真實卡池，
+                // 正常抓取不會有東西進去，所以**只在真的有紀錄時才出現**，避免給每個人一個空頁籤。
+                // 一旦真的有紀錄（例如 upload 路徑帶進來的異常資料），頁籤就會自動出現，
+                // 那些紀錄不會被靜默吞掉。
+                const categoriesArr = Object.keys(stats.starcounts).filter(function (cat) {
+                  if (cat !== stats.unknownCategory) return true;
+                  const c = stats.catCounts[cat] || { paid: 0, free: 0 };
+                  return (c.paid + c.free) > 0;
+                });
                 const defaultCategory = categoriesArr[0];
               %>
               <% categoriesArr.forEach(function(cat, ci) { %>

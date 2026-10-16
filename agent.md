@@ -12,7 +12,7 @@
 **技術棧 (Tech Stack)**：
 *   **後端**：Node.js + Firebase Cloud Functions + Express。
 *   **前端**：EJS 樣板引擎 + Vanilla JS/CSS（零前端框架，追求極致輕量化與快速渲染）。
-*   **儲存**：Firestore（僅用於快取與匿名化統計）。授權憑證**不寫入資料庫** —— 它只存在於已簽章的 httpOnly `__session` cookie 中（見下方第 4 節的不可違反原則 6）。<br>⚠️ 歷史：2026-08-13 ~ 2026-10 曾把 `oauthToken` 暫存於 Firestore 的 `pendingFetch`，並因 BigQuery extension 而被永久保留。該設計已移除。
+*   **儲存**：Firestore（僅用於快取與匿名化統計）。授權憑證**不寫入資料庫** —— 它只存在於已簽章的 httpOnly `__session` cookie 中（見下方第 4 節的不可違反原則 7）。<br>⚠️ 歷史：2026-08-13 ~ 2026-10 曾把 `oauthToken` 暫存於 Firestore 的 `pendingFetch`，並因 BigQuery extension 而被永久保留。該設計已移除。
 *   **輔助工具**：Chromium 擴充功能 (`Endfield-Overseas-Gacha-Helper-Extension`)，負責從官方網頁中安全提取 `X-Role-Token` 與登入 Cookie。
 
 **當前系統最新狀態**：
@@ -73,31 +73,41 @@ node Firebase-endfieldgacha/scripts/flow-check.js       # 登入／抓取流程�
     *   卡池中會出現「不計保底」的贈送抽，其欄位為 `item.isFree`（布林值）。
     *   **限制**：如果 `isFree === true`，該抽**絕對不可以**計入 `countAcc`（累計墊抽數）。如果抽出的 6 星是贈送抽，則不需要顯示耗費抽數（但仍須出現在「近期出金」列表中）。
 3.  **獨立卡池的統計**：
-    *   終末地卡池共 7 類：`特許尋訪`、`基礎尋訪`、`重構尋訪`、`輝光慶典`、`啟程尋訪`、`其他尋訪`、`武庫申領`。
-    *   **分類與順序的唯一來源是 `utils.js` 的 `ALL_CATEGORIES`**。`index.ejs` 以 `Object.keys(stats.starcounts)` 推導按鈕列、面板與預設分類 —— **不要在樣板裡硬編碼分類清單**，那正是「重構尋訪」當初整個漏掉又看不見的原因。
-    *   `其他尋訪` 常駐顯示（即使 0 筆），這是未知新卡池的安全網。
+    *   終末地卡池共 6 類真實分類：`特許尋訪`、`基礎尋訪`、`重構尋訪`、`輝光慶典`、`啟程尋訪`、`武庫申領`，外加一個診斷用的 `其他尋訪`。
+    *   **分類與順序的唯一來源是 `utils.js` 的 `ALL_CATEGORIES`**。`index.ejs` 以 `Object.keys(stats.starcounts)` 推導按鈕列、面板與預設分類 —— **不要在樣板裡硬編碼分類清單**。
     *   **不要**嘗試把所有卡池的保底與抽數混在一起算。在 `index.ejs` 中，我們已經改為迴圈遍歷各卡池獨立渲染，請維持這個模式。
-4.  **防爬蟲與併發限制**：
+
+4.  ⚠️ **`其他尋訪` 的真實作用範圍（別高估它）**
+    *   它**必須存在於 `ALL_CATEGORIES`**，否則 `categoryOf()` 回傳的分類在 `starcounts` 裡查不到，`starcounts[category][rarity]++` 會對 `undefined` 取下標而讓整個 dashboard 爆掉。這是它最實際的功能：保證 `categoryOf` 有回傳值。
+    *   它**只在真的有紀錄時才對使用者顯示**（`index.ejs` 用 `stats.unknownCategory` 過濾），因為它不是真實卡池，常駐顯示只會給每個人一個空頁籤。
+    *   **什麼會進去**：角色紀錄的 `poolId` 不符任何已知前綴、`poolId` 缺失或型別異常、或連 `itemCategory` 都沒有的紀錄。實務上真正會觸發的是 **`index.js` 的 `method === 'upload'` 這條零驗證路徑**（直接存 `req.body.logs`），以及從 `gacha-backup/` 還原或他人工具導出的 JSON。
+    *   **什麼永遠不會進去**：任何武器紀錄（`categoryOf` 第一行無條件回 `武庫申領`）；任何正常抓取的角色紀錄（抓取時一定被標上 5 個 enum 之一，而那 5 個都有對應分類）。
+    *   🔴 **所以它不是「新卡池型態」的安全網 —— 這點務必分清**：
+        *   **武器側確實免疫**：我們不帶 `pool_id` 分頁到底，新武器池自動被抓到並歸入 `武庫申領`。
+        *   **角色側不免疫**：角色 API **強制要求** `pool_type`，我們只拿得到明確請求過的 enum 的紀錄。一個還不知道的新型態 → **根本沒有紀錄會進來** → 也不會落到 `其他尋訪`。
+        *   角色側新卡池的真正防線是**發現新 enum 並加進 `CHAR_POOL_TYPES`**，也就是下方第 6 點的探測機制。而 `GET /api/record/char/pool` 回空陣列、無法列舉型態，所以**只能靠定期重跑探測，沒有自動發現的辦法**。
+        *   ⚠️ **這是目前仍未解決的殘餘風險** —— 「重構尋訪」當初整個漏掉的根因就在抓取層，而顯示層資料驅動只解決了「已抓到但分類未知的東西要看得見」這一半。
+5.  **防爬蟲與併發限制**：
     *   向官方獲取資料的 `fetchAllLogsSlowly` 等函數中，刻意保留了 `sleep(200)` 等延遲機制，這是為了避免觸發官方 API 的 Rate Limit 或 WAF 阻擋。**請勿**為了追求速度而移除這些延遲。
-5.  **卡池型態的發現機制（可重複使用）**：
+6.  **卡池型態的發現機制（可重複使用）**：
     *   API 對 `pool_type` 做應用層驗證，回應本身就是一個判定機制：<br>`code: 0` = enum 有效（**即使該帳號 0 筆也是 0**）／`code: 40000 "Invalid pool_type"` = enum 無效／`HTTP 400` = 參數型別或空值錯誤。
     *   據此探測 66 個候選名稱，**只有 5 個有效**，即 `utils.js` 的 `CHAR_POOL_TYPES`。大小寫敏感。
     *   角色側**強制要求** `pool_type`（不帶會回 400），所以無法用「省略參數」聚合全部卡池。武器側則相反，不帶 `pool_id` 分頁到底就是完整結果（已驗證 = 逐池列舉）。
     *   另有兩個端點：`GET /api/record/weapon/pool` 回傳武器卡池註冊表（`poolId` / `poolName` / `poolType` 為 `normal`｜`rerun` / `online`），我們用它標記武器側的重構池；`GET /api/record/char/pool` 存在但 `data` 為空陣列，**無法**用來列舉角色卡池。
 
-6.  🔴 **不可違反：憑證絕不可寫入受 BigQuery extension 監聽的文件**
+7.  🔴 **不可違反：憑證絕不可寫入受 BigQuery extension 監聽的文件**
     *   `extensions/firestore-bigquery-export.env` 的 `COLLECTION_PATH=endfieldUsers` —— **直接監聽使用者文件**，且 `EXCLUDE_OLD_DATA=no`。
     *   寫進受監聽文件的任何欄位都是**永久的**：changelog 的 `old_data` 連被刪掉的欄位都會保留，`FieldValue.delete()` 救不回來。
     *   所以 `endfieldUsers/{roleId}` 只能放不敏感內容（`info` 與 `fetchStartedAt` / `lastFetchedAt` 時間戳）。憑證一律走 `__session` cookie（`index.js` 的 `getSession` / `setSession`）。
     *   改動 extension 設定請改 `extensions/*.env` 並重新部署，**不要在 Console 直接改** —— 那樣變更無跡可循，2026-08-13 就是這樣出事的。
 
-7.  ⚠️ **新增的 API 欄位不可單獨作為演算法依據**
+8.  ⚠️ **新增的 API 欄位不可單獨作為演算法依據**
     *   舊紀錄沒有新欄位。任何依賴新欄位的判斷都**必須明確定義「欄位不存在」時的行為**。
     *   既有範例：`utils.js` 的 `logs.filter(item => !item.kind || item.kind === "draw")` —— `!item.kind` 正是為了保留沒有 `kind` 的舊紀錄；`categoryOf()` 在沒有 `poolType` 時退回 poolId 前綴；`isRerun()` 同理。
     *   已知的欄位斷代：`isFree` 在 2026-04-21 的備份裡**還沒有**（5-19 才有）；`kind` 在兩份備份裡都沒有；`poolVersion` 雖然存在但**實測恆為 `null`**，不要拿它當判斷依據。
     *   ⚠️ **官方 API 只保留約 3 個月的紀錄**（實測最早一律是當下往前推約 3 個月），超窗歷史**不可重建**，只存在於 Firestore 與 `gacha-backup/`。所以 `mergeLogs` 的純聯集語意很重要，任何破壞性 DB 操作都是永久損失。
 
-8.  ⏳ **待查證**：重構尋訪的每抽成本是否同為 500 嵌晶玉。`index.ejs` 的 `POOL_COST` 目前讓它走 500 的預設值（只有 `武庫申領` 是 198 武庫配額）。需要有該卡池紀錄的帳號或官方資料確認。
+9.  ⏳ **待查證**：重構尋訪的每抽成本是否同為 500 嵌晶玉。`index.ejs` 的 `POOL_COST` 目前讓它走 500 的預設值（只有 `武庫申領` 是 198 武庫配額）。需要有該卡池紀錄的帳號或官方資料確認。
 
-9.  **與 Arknights (明日方舟) 的差異**：
+10. **與 Arknights (明日方舟) 的差異**：
     *   如果您同時維護 `Firebase-global-arknightsgacha`，請注意明日方舟的官方 API 星級可能是從 0 開始索引的（即 `5` 代表 6 星），但**終末地的 API 是真實星級**（`6` 就是 6 星）。**不要**將明日方舟的 `lastCounts['5']` 邏輯直接複製到本專案中。
