@@ -1,0 +1,658 @@
+{
+  "bak0421_ef_visit_logs_4677200022.json": {
+    "recordCount": 800,
+    "totalPulls": 800,
+    "byItemCategoryAndPoolCategory": {
+      "char/啟程尋訪": 40,
+      "char/基礎尋訪": 120,
+      "char/特許尋訪": 390,
+      "weapon/武庫申領": 250
+    },
+    "starcounts": {
+      "特許尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 336,
+        "5": 47,
+        "6": 7
+      },
+      "基礎尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 100,
+        "5": 18,
+        "6": 2
+      },
+      "重構尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "輝光慶典": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "啟程尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 32,
+        "5": 7,
+        "6": 1
+      },
+      "其他尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "武庫申領": {
+        "2": 0,
+        "3": 0,
+        "4": 202,
+        "5": 40,
+        "6": 8
+      }
+    },
+    "catCounts": {
+      "特許尋訪": {
+        "paid": 360,
+        "free": 30
+      },
+      "基礎尋訪": {
+        "paid": 120,
+        "free": 0
+      },
+      "重構尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "輝光慶典": {
+        "paid": 0,
+        "free": 0
+      },
+      "啟程尋訪": {
+        "paid": 40,
+        "free": 0
+      },
+      "其他尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "武庫申領": {
+        "paid": 250,
+        "free": 0
+      }
+    },
+    "countAcc": {
+      "beginner": 0,
+      "special_1_0_1": 0,
+      "special_1_0_2": 20,
+      "special_1_0_3": 0,
+      "special_1_1_1": 10,
+      "special_1_1_2": 10,
+      "special_1_2_1": 0,
+      "standard": 20,
+      "weaponbox_constant_2": 10,
+      "weaponbox_constant_4": 3,
+      "weponbox_1_0_1": 0,
+      "weponbox_1_2_1": 0
+    },
+    "poolCounts": {
+      "beginner": {
+        "paid": 40,
+        "free": 0
+      },
+      "special_1_0_1": {
+        "paid": 70,
+        "free": 10
+      },
+      "special_1_0_2": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_0_3": {
+        "paid": 120,
+        "free": 10
+      },
+      "special_1_1_1": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_1_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "special_1_2_1": {
+        "paid": 120,
+        "free": 10
+      },
+      "standard": {
+        "paid": 120,
+        "free": 0
+      },
+      "weaponbox_constant_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "weaponbox_constant_4": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_0_1": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_2_1": {
+        "paid": 80,
+        "free": 0
+      }
+    },
+    "intervalsByPool": {
+      "beginner": [
+        40
+      ],
+      "special_1_0_1": [
+        70
+      ],
+      "special_1_0_3": [
+        71,
+        49
+      ],
+      "special_1_1_1": [
+        10
+      ],
+      "special_1_2_1": [
+        56,
+        8,
+        56
+      ],
+      "standard": [
+        29,
+        71
+      ],
+      "weaponbox_constant_4": [
+        22,
+        15,
+        40
+      ],
+      "weponbox_1_0_1": [
+        40,
+        25,
+        15
+      ],
+      "weponbox_1_2_1": [
+        40,
+        40
+      ]
+    },
+    "poolPityKey": {
+      "beginner": "beginner",
+      "special_1_0_1": "special_1_0_1",
+      "special_1_0_2": "special_1_0_2",
+      "special_1_0_3": "special_1_0_3",
+      "special_1_1_1": "special_1_1_1",
+      "special_1_1_2": "special_1_1_2",
+      "special_1_2_1": "special_1_2_1",
+      "standard": "standard",
+      "weaponbox_constant_2": "weaponbox_constant_2",
+      "weaponbox_constant_4": "weaponbox_constant_4",
+      "weponbox_1_0_1": "weponbox_1_0_1",
+      "weponbox_1_2_1": "weponbox_1_2_1"
+    }
+  },
+  "ef_bak0519_visit_logs.json": {
+    "recordCount": 850,
+    "totalPulls": 850,
+    "byItemCategoryAndPoolCategory": {
+      "char/啟程尋訪": 40,
+      "char/基礎尋訪": 130,
+      "char/特許尋訪": 390,
+      "char/輝光慶典": 10,
+      "weapon/武庫申領": 280
+    },
+    "starcounts": {
+      "特許尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 336,
+        "5": 47,
+        "6": 7
+      },
+      "基礎尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 109,
+        "5": 19,
+        "6": 2
+      },
+      "重構尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "輝光慶典": {
+        "2": 0,
+        "3": 0,
+        "4": 9,
+        "5": 1,
+        "6": 0
+      },
+      "啟程尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 32,
+        "5": 7,
+        "6": 1
+      },
+      "其他尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "武庫申領": {
+        "2": 0,
+        "3": 0,
+        "4": 224,
+        "5": 46,
+        "6": 10
+      }
+    },
+    "catCounts": {
+      "特許尋訪": {
+        "paid": 360,
+        "free": 30
+      },
+      "基礎尋訪": {
+        "paid": 130,
+        "free": 0
+      },
+      "重構尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "輝光慶典": {
+        "paid": 10,
+        "free": 0
+      },
+      "啟程尋訪": {
+        "paid": 40,
+        "free": 0
+      },
+      "其他尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "武庫申領": {
+        "paid": 280,
+        "free": 0
+      }
+    },
+    "countAcc": {
+      "beginner": 0,
+      "joint_1_2_2": 10,
+      "special_1_0_1": 0,
+      "special_1_0_2": 20,
+      "special_1_0_3": 0,
+      "special_1_1_1": 10,
+      "special_1_1_2": 10,
+      "special_1_2_1": 0,
+      "standard": 30,
+      "weaponbox_constant_2": 10,
+      "weaponbox_constant_4": 3,
+      "weponbox_1_0_1": 0,
+      "weponbox_1_1_1": 17,
+      "weponbox_1_2_1": 0
+    },
+    "poolCounts": {
+      "beginner": {
+        "paid": 40,
+        "free": 0
+      },
+      "joint_1_2_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "special_1_0_1": {
+        "paid": 70,
+        "free": 10
+      },
+      "special_1_0_2": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_0_3": {
+        "paid": 120,
+        "free": 10
+      },
+      "special_1_1_1": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_1_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "special_1_2_1": {
+        "paid": 120,
+        "free": 10
+      },
+      "standard": {
+        "paid": 130,
+        "free": 0
+      },
+      "weaponbox_constant_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "weaponbox_constant_4": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_0_1": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_1_1": {
+        "paid": 30,
+        "free": 0
+      },
+      "weponbox_1_2_1": {
+        "paid": 80,
+        "free": 0
+      }
+    },
+    "intervalsByPool": {
+      "beginner": [
+        40
+      ],
+      "special_1_0_1": [
+        70
+      ],
+      "special_1_0_3": [
+        71,
+        49
+      ],
+      "special_1_1_1": [
+        10
+      ],
+      "special_1_2_1": [
+        56,
+        8,
+        56
+      ],
+      "standard": [
+        29,
+        71
+      ],
+      "weaponbox_constant_4": [
+        22,
+        15,
+        40
+      ],
+      "weponbox_1_0_1": [
+        40,
+        25,
+        15
+      ],
+      "weponbox_1_1_1": [
+        8,
+        5
+      ],
+      "weponbox_1_2_1": [
+        40,
+        40
+      ]
+    },
+    "poolPityKey": {
+      "beginner": "beginner",
+      "joint_1_2_2": "joint_1_2_2",
+      "special_1_0_1": "special_1_0_1",
+      "special_1_0_2": "special_1_0_2",
+      "special_1_0_3": "special_1_0_3",
+      "special_1_1_1": "special_1_1_1",
+      "special_1_1_2": "special_1_1_2",
+      "special_1_2_1": "special_1_2_1",
+      "standard": "standard",
+      "weaponbox_constant_2": "weaponbox_constant_2",
+      "weaponbox_constant_4": "weaponbox_constant_4",
+      "weponbox_1_0_1": "weponbox_1_0_1",
+      "weponbox_1_1_1": "weponbox_1_1_1",
+      "weponbox_1_2_1": "weponbox_1_2_1"
+    }
+  },
+  "__merged": {
+    "recordCount": 850,
+    "dedupKeys": 850,
+    "totalPulls": 850,
+    "byItemCategoryAndPoolCategory": {
+      "char/啟程尋訪": 40,
+      "char/基礎尋訪": 130,
+      "char/特許尋訪": 390,
+      "char/輝光慶典": 10,
+      "weapon/武庫申領": 280
+    },
+    "starcounts": {
+      "特許尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 336,
+        "5": 47,
+        "6": 7
+      },
+      "基礎尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 109,
+        "5": 19,
+        "6": 2
+      },
+      "重構尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "輝光慶典": {
+        "2": 0,
+        "3": 0,
+        "4": 9,
+        "5": 1,
+        "6": 0
+      },
+      "啟程尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 32,
+        "5": 7,
+        "6": 1
+      },
+      "其他尋訪": {
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "武庫申領": {
+        "2": 0,
+        "3": 0,
+        "4": 224,
+        "5": 46,
+        "6": 10
+      }
+    },
+    "catCounts": {
+      "特許尋訪": {
+        "paid": 360,
+        "free": 30
+      },
+      "基礎尋訪": {
+        "paid": 130,
+        "free": 0
+      },
+      "重構尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "輝光慶典": {
+        "paid": 10,
+        "free": 0
+      },
+      "啟程尋訪": {
+        "paid": 40,
+        "free": 0
+      },
+      "其他尋訪": {
+        "paid": 0,
+        "free": 0
+      },
+      "武庫申領": {
+        "paid": 280,
+        "free": 0
+      }
+    },
+    "countAcc": {
+      "beginner": 0,
+      "joint_1_2_2": 10,
+      "special_1_0_1": 0,
+      "special_1_0_2": 20,
+      "special_1_0_3": 0,
+      "special_1_1_1": 10,
+      "special_1_1_2": 10,
+      "special_1_2_1": 0,
+      "standard": 30,
+      "weaponbox_constant_2": 10,
+      "weaponbox_constant_4": 3,
+      "weponbox_1_0_1": 0,
+      "weponbox_1_1_1": 17,
+      "weponbox_1_2_1": 0
+    },
+    "poolCounts": {
+      "beginner": {
+        "paid": 40,
+        "free": 0
+      },
+      "joint_1_2_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "special_1_0_1": {
+        "paid": 70,
+        "free": 10
+      },
+      "special_1_0_2": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_0_3": {
+        "paid": 120,
+        "free": 10
+      },
+      "special_1_1_1": {
+        "paid": 20,
+        "free": 0
+      },
+      "special_1_1_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "special_1_2_1": {
+        "paid": 120,
+        "free": 10
+      },
+      "standard": {
+        "paid": 130,
+        "free": 0
+      },
+      "weaponbox_constant_2": {
+        "paid": 10,
+        "free": 0
+      },
+      "weaponbox_constant_4": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_0_1": {
+        "paid": 80,
+        "free": 0
+      },
+      "weponbox_1_1_1": {
+        "paid": 30,
+        "free": 0
+      },
+      "weponbox_1_2_1": {
+        "paid": 80,
+        "free": 0
+      }
+    },
+    "intervalsByPool": {
+      "beginner": [
+        40
+      ],
+      "special_1_0_1": [
+        70
+      ],
+      "special_1_0_3": [
+        71,
+        49
+      ],
+      "special_1_1_1": [
+        10
+      ],
+      "special_1_2_1": [
+        56,
+        8,
+        56
+      ],
+      "standard": [
+        29,
+        71
+      ],
+      "weaponbox_constant_4": [
+        22,
+        15,
+        40
+      ],
+      "weponbox_1_0_1": [
+        40,
+        25,
+        15
+      ],
+      "weponbox_1_1_1": [
+        8,
+        5
+      ],
+      "weponbox_1_2_1": [
+        40,
+        40
+      ]
+    },
+    "poolPityKey": {
+      "beginner": "beginner",
+      "joint_1_2_2": "joint_1_2_2",
+      "special_1_0_1": "special_1_0_1",
+      "special_1_0_2": "special_1_0_2",
+      "special_1_0_3": "special_1_0_3",
+      "special_1_1_1": "special_1_1_1",
+      "special_1_1_2": "special_1_1_2",
+      "special_1_2_1": "special_1_2_1",
+      "standard": "standard",
+      "weaponbox_constant_2": "weaponbox_constant_2",
+      "weaponbox_constant_4": "weaponbox_constant_4",
+      "weponbox_1_0_1": "weponbox_1_0_1",
+      "weponbox_1_1_1": "weponbox_1_1_1",
+      "weponbox_1_2_1": "weponbox_1_2_1"
+    }
+  }
+}
