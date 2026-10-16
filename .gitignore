@@ -76,3 +76,7 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Firebase Extensions：BigQuery 匯出屬於獨立的分析工作流，不是本工具的一部分。
+# 設定由 Firebase Console 管理，副本存放於 datastudio/。
+extensions/

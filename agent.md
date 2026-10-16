@@ -12,13 +12,23 @@
 **技術棧 (Tech Stack)**：
 *   **後端**：Node.js + Firebase Cloud Functions + Express。
 *   **前端**：EJS 樣板引擎 + Vanilla JS/CSS（零前端框架，追求極致輕量化與快速渲染）。
-*   **儲存**：Firebase Realtime Database / Firestore（僅用於快取與匿名化統計，**絕對不存**明文 Token）。
+*   **儲存**：Firestore（僅用於快取與匿名化統計）。授權憑證**不寫入資料庫** —— 它只存在於已簽章的 httpOnly `__session` cookie 中（見下方第 4 節的不可違反原則 6）。<br>⚠️ 歷史：2026-08-13 ~ 2026-10 曾把 `oauthToken` 暫存於 Firestore 的 `pendingFetch`，並因 BigQuery extension 而被永久保留。該設計已移除。
 *   **輔助工具**：Chromium 擴充功能 (`Endfield-Overseas-Gacha-Helper-Extension`)，負責從官方網頁中安全提取 `X-Role-Token` 與登入 Cookie。
 
 **當前系統最新狀態**：
 *   已完成全面 SEO 優化（於全域注入 Canonical URL、更新 Login 頁面 Meta 內容）。
 *   已完成各卡池的「獨立統計與渲染」架構（角色池與武器池完全拆分）。
 *   已對齊並修正終末地特有的星級邏輯：包含武器池在內，最高稀有度（出金）皆為 6 星。
+*   **（2026-10-16）P0-8 完成**：新增「重構尋訪」抓取；分類改為抓取時標記 `poolType`；顯示層改為資料驅動；重構尋訪保底改以「同名」累積。
+*   **（2026-10-16）P0-9 完成**：授權憑證改走 httpOnly cookie，完全不經手 Firestore；新增 uid consistency check 與抓取互斥鎖。
+
+**本機驗證腳本**（`scripts/`，在工作區根目錄執行）：
+```bash
+npm --prefix Firebase-endfieldgacha/functions install   # node_modules 會被 postdeploy hook 清掉，本機要自己裝
+node Firebase-endfieldgacha/scripts/regression-check.js # 用 gacha-backup/ 快照比對 analyzeLogs 輸出（--update 重設基準）
+node Firebase-endfieldgacha/scripts/pity-cases.js       # 重構尋訪的分類與保底案例（合成資料）
+node Firebase-endfieldgacha/scripts/flow-check.js       # 登入／抓取流程端到端，稽核權杖從不進 Firestore
+```
 
 ---
 
@@ -33,7 +43,7 @@
     *   `privacy.ejs`：隱私權政策聲明頁面。
 
 ### 核心架構決策 (Architecture Decisions)
-1.  **無狀態架構與隱私優先**：使用者的憑證（Tokens、Cookies）僅在記憶體中短暫停留，用於向官方發起代理請求後即銷毀，實作「用完即棄」。
+1.  **無狀態架構與隱私優先**：伺服器端不保存憑證。抓取需要跨請求續傳（`selectRole` 必須搶在 Hosting 的 60 秒逾時前回應，慢速爬取交給 `/fetch-logs`），所以授權憑證存放在**已簽章的 httpOnly `__session` cookie**，而非資料庫或 Function 實例的記憶體 —— 這同時保證任何 instance 都能接手（真正的無狀態），且頁面 JS 讀不到。抓取完成後由 `/check-ready` 清除。
 2.  **角色識別 (Role-based Indexing)**：由於 Gryphline 帳號支援跨服多角色，資料庫索引與快取機制必須使用 `data-list-bindingList-roles-[角色]-roleId`（例如 `4677200022`）作為主鍵，而非頂層的帳號 UID。
 
 ---
@@ -63,9 +73,31 @@
     *   卡池中會出現「不計保底」的贈送抽，其欄位為 `item.isFree`（布林值）。
     *   **限制**：如果 `isFree === true`，該抽**絕對不可以**計入 `countAcc`（累計墊抽數）。如果抽出的 6 星是贈送抽，則不需要顯示耗費抽數（但仍須出現在「近期出金」列表中）。
 3.  **獨立卡池的統計**：
-    *   終末地卡池分為：`基礎尋訪`、`特許尋訪`、`啟程尋訪`、`武庫申領`。
+    *   終末地卡池共 7 類：`特許尋訪`、`基礎尋訪`、`重構尋訪`、`輝光慶典`、`啟程尋訪`、`其他尋訪`、`武庫申領`。
+    *   **分類與順序的唯一來源是 `utils.js` 的 `ALL_CATEGORIES`**。`index.ejs` 以 `Object.keys(stats.starcounts)` 推導按鈕列、面板與預設分類 —— **不要在樣板裡硬編碼分類清單**，那正是「重構尋訪」當初整個漏掉又看不見的原因。
+    *   `其他尋訪` 常駐顯示（即使 0 筆），這是未知新卡池的安全網。
     *   **不要**嘗試把所有卡池的保底與抽數混在一起算。在 `index.ejs` 中，我們已經改為迴圈遍歷各卡池獨立渲染，請維持這個模式。
 4.  **防爬蟲與併發限制**：
     *   向官方獲取資料的 `fetchAllLogsSlowly` 等函數中，刻意保留了 `sleep(200)` 等延遲機制，這是為了避免觸發官方 API 的 Rate Limit 或 WAF 阻擋。**請勿**為了追求速度而移除這些延遲。
-5.  **與 Arknights (明日方舟) 的差異**：
+5.  **卡池型態的發現機制（可重複使用）**：
+    *   API 對 `pool_type` 做應用層驗證，回應本身就是一個判定機制：<br>`code: 0` = enum 有效（**即使該帳號 0 筆也是 0**）／`code: 40000 "Invalid pool_type"` = enum 無效／`HTTP 400` = 參數型別或空值錯誤。
+    *   據此探測 66 個候選名稱，**只有 5 個有效**，即 `utils.js` 的 `CHAR_POOL_TYPES`。大小寫敏感。
+    *   角色側**強制要求** `pool_type`（不帶會回 400），所以無法用「省略參數」聚合全部卡池。武器側則相反，不帶 `pool_id` 分頁到底就是完整結果（已驗證 = 逐池列舉）。
+    *   另有兩個端點：`GET /api/record/weapon/pool` 回傳武器卡池註冊表（`poolId` / `poolName` / `poolType` 為 `normal`｜`rerun` / `online`），我們用它標記武器側的重構池；`GET /api/record/char/pool` 存在但 `data` 為空陣列，**無法**用來列舉角色卡池。
+
+6.  🔴 **不可違反：憑證絕不可寫入受 BigQuery extension 監聽的文件**
+    *   `extensions/firestore-bigquery-export.env` 的 `COLLECTION_PATH=endfieldUsers` —— **直接監聽使用者文件**，且 `EXCLUDE_OLD_DATA=no`。
+    *   寫進受監聽文件的任何欄位都是**永久的**：changelog 的 `old_data` 連被刪掉的欄位都會保留，`FieldValue.delete()` 救不回來。
+    *   所以 `endfieldUsers/{roleId}` 只能放不敏感內容（`info` 與 `fetchStartedAt` / `lastFetchedAt` 時間戳）。憑證一律走 `__session` cookie（`index.js` 的 `getSession` / `setSession`）。
+    *   改動 extension 設定請改 `extensions/*.env` 並重新部署，**不要在 Console 直接改** —— 那樣變更無跡可循，2026-08-13 就是這樣出事的。
+
+7.  ⚠️ **新增的 API 欄位不可單獨作為演算法依據**
+    *   舊紀錄沒有新欄位。任何依賴新欄位的判斷都**必須明確定義「欄位不存在」時的行為**。
+    *   既有範例：`utils.js` 的 `logs.filter(item => !item.kind || item.kind === "draw")` —— `!item.kind` 正是為了保留沒有 `kind` 的舊紀錄；`categoryOf()` 在沒有 `poolType` 時退回 poolId 前綴；`isRerun()` 同理。
+    *   已知的欄位斷代：`isFree` 在 2026-04-21 的備份裡**還沒有**（5-19 才有）；`kind` 在兩份備份裡都沒有；`poolVersion` 雖然存在但**實測恆為 `null`**，不要拿它當判斷依據。
+    *   ⚠️ **官方 API 只保留約 3 個月的紀錄**（實測最早一律是當下往前推約 3 個月），超窗歷史**不可重建**，只存在於 Firestore 與 `gacha-backup/`。所以 `mergeLogs` 的純聯集語意很重要，任何破壞性 DB 操作都是永久損失。
+
+8.  ⏳ **待查證**：重構尋訪的每抽成本是否同為 500 嵌晶玉。`index.ejs` 的 `POOL_COST` 目前讓它走 500 的預設值（只有 `武庫申領` 是 198 武庫配額）。需要有該卡池紀錄的帳號或官方資料確認。
+
+9.  **與 Arknights (明日方舟) 的差異**：
     *   如果您同時維護 `Firebase-global-arknightsgacha`，請注意明日方舟的官方 API 星級可能是從 0 開始索引的（即 `5` 代表 6 星），但**終末地的 API 是真實星級**（`6` 就是 6 星）。**不要**將明日方舟的 `lastCounts['5']` 邏輯直接複製到本專案中。

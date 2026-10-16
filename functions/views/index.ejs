@@ -143,11 +143,16 @@
           <div style="padding: 1rem; color: #fff;">
             <!-- Category Toggles -->
             <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; padding: 0 1rem; margin-top: 1rem;">
-              <button class="cat-btn active" data-cat="基礎尋訪">基礎尋訪</button>
-              <button class="cat-btn" data-cat="特許尋訪">特許尋訪</button>
-              <button class="cat-btn" data-cat="輝光慶典">輝光慶典</button>
-              <button class="cat-btn" data-cat="啟程尋訪">啟程尋訪</button>
-              <button class="cat-btn" data-cat="武庫申領">武庫申領</button>
+              <%
+                // 分類與順序一律來自後端的 stats.starcounts —— utils.js 的 ALL_CATEGORIES 是唯一來源。
+                // 刻意不按筆數過濾：所有分類常駐顯示，所以未來冒出新型態（落入「其他尋訪」）
+                // 也會看得到，而不是靜默消失。
+                const categoriesArr = Object.keys(stats.starcounts);
+                const defaultCategory = categoriesArr[0];
+              %>
+              <% categoriesArr.forEach(function(cat, ci) { %>
+              <button class="cat-btn<%= ci === 0 ? ' active' : '' %>" data-cat="<%= cat %>"><%= cat %></button>
+              <% }); %>
             </div>
 
             <div style="margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; display: flex; align-items: flex-start;">
@@ -199,10 +204,15 @@
               <span></span><span></span>
             </div>
             
-            <% const categoriesArr = ['基礎尋訪', '特許尋訪', '輝光慶典', '啟程尋訪', '武庫申領']; %>
+            <%
+              // 每抽成本查表 + 預設值。只有武器池用武庫配額，其餘角色池一律 500 嵌晶玉。
+              // ⚠️ 重構尋訪是否同為 500 嵌晶玉尚未查證（無紀錄可驗），先走預設值。
+              const POOL_COST = { '武庫申領': { cost: 198, currency: '武庫配額' } };
+            %>
             <% categoriesArr.forEach(function(cat) { 
-                 const costPerPull = (cat === '武庫申領') ? 198 : 500;
-                 const currencyName = (cat === '武庫申領') ? '武庫配額' : '嵌晶玉';
+                 const costInfo = POOL_COST[cat] || { cost: 500, currency: '嵌晶玉' };
+                 const costPerPull = costInfo.cost;
+                 const currencyName = costInfo.currency;
                  
                  // Get total counts for this category
                  let cStats = stats.starcounts[cat] || { '6':0, '5': 0, '4': 0, '3': 0, '2': 0 };
@@ -222,7 +232,10 @@
                  let lastLog = catLogs[0] || {};
                  let cLastPullName = lastLog.poolName || "無紀錄";
                  let cLastPullId = lastLog.poolId || "none";
-                 let cAccumulation = stats.countAcc[cLastPullId] || 0;
+                 // 保底 key 與顯示 key 刻意解耦：重構尋訪以「同名」累積（rerun:<poolName>），
+                 // 其餘以 poolId。所以要先經 poolPityKey 轉換，不能直接拿 poolId 查 countAcc。
+                 let cPityKey = (stats.poolPityKey && stats.poolPityKey[cLastPullId]) || cLastPullId;
+                 let cAccumulation = stats.countAcc[cPityKey] || 0;
                  
                  let lpCounts = stats.poolCounts[cLastPullId] || { paid: 0, free: 0 };
                  let lpPaid = lpCounts.paid;
@@ -433,7 +446,8 @@
   <!-- </div> -->
   <script>
     // ======= Category Switching functionality =======
-    let activeCategory = '基礎尋訪';
+    // 預設分類取推導出的第一個（即 utils.js ALL_CATEGORIES 的第一項，目前是「特許尋訪」）
+    let activeCategory = '<%= defaultCategory %>';
 
     function updateCategoryView() {
         // 1. Update Buttons
@@ -581,8 +595,12 @@
     cbs.forEach(cb => {
       cb.addEventListener('change', function() {
         // filter history groups based on checkbox selection
-        // Since history has same logic (data-pool), we can hide those
-        const poolName = this.value;
+        //
+        // this.value 是 poolId（上方 checkbox 的 value 綁的是 uniquePoolsMap 的 key = log.poolId），
+        // 不是 poolName。
+        // 標籤顯示用 poolName，但比對一律用 poolId —— 同名不同 poolId 的重構池
+        // 因此能分開篩選。不要改回 poolName。
+        const poolId = this.value;
         const show = this.checked;
         
         if (toggleAll) {
@@ -593,7 +611,7 @@
           toggleAll.indeterminate = someChecked && !allChecked;
         }
 
-        document.querySelectorAll(`.pool-group-wrapper[data-pool="${poolName}"]`).forEach(wrapper => {
+        document.querySelectorAll(`.pool-group-wrapper[data-pool="${poolId}"]`).forEach(wrapper => {
           // only apply logic if it belongs to current active category
           if (wrapper.getAttribute('data-recordcat') === activeCategory) {
               wrapper.style.display = show ? 'block' : 'none';

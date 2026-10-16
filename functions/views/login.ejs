@@ -141,7 +141,7 @@
         </div>
         <form method="post" action="/login">
           <input type="hidden" name="method" value="selectRole" />
-          <input type="hidden" name="oauthToken" value="<%= oauthToken %>" />
+          <%# P0-9：oauthToken 已改走已簽章的 httpOnly __session cookie，不再經過 HTML 隱藏欄位（頁面 JS 讀不到） %>
           <% roles.forEach(function(role, idx) { %>
             <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #1bd1fe; border-radius: 0.25rem; cursor: pointer;">
                 <label style="display: flex; align-items: center; cursor: pointer; width: 100%;">

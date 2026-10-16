@@ -135,6 +135,16 @@
         clearTimeout(timeoutId);
 
         if (res.ok) {
+          // 另一個請求已經在抓了（互斥檔下）—— 不要當成完成，改去輪詢等它結束
+          let body = null;
+          try { body = await res.json(); } catch (e) { /* 無 body 視為完成 */ }
+          if (body && body.inProgress) {
+            stepFetch.textContent = '⏳ 已有抓取進行中，等待完成...';
+            setProgress(60);
+            pollForReady();
+            return;
+          }
+
           // Success! Direct response
           clearInterval(ticker);
           stepFetch.classList.remove('active');
@@ -148,23 +158,53 @@
           stepDone.textContent = '✅ 完成！正在跳轉...';
           setTimeout(() => { window.location.href = '/'; }, 800);
           return;
-        } else {
-          throw new Error('Server returned ' + res.status);
         }
+
+        // 收到了回應 —— 代表 Function 已經回話，結果是最終的，不要再去輪詢等它。
+        // （會「可能還在跑」的只有完全沒收到回應的情況，見下面的 catch。）
+        let err = null;
+        try { err = await res.json(); } catch (e) { /* 非 JSON */ }
+        console.log('fetch-logs failed:', res.status, err && err.error);
+        if (res.status === 401 || res.status === 404) {
+          showFailure('登入狀態已失效，請重新登入');
+        } else if (res.status === 403) {
+          showFailure('授權與所選角色不符，請重新登入');
+        } else {
+          showFailure('抓取失敗' + (err && err.error ? '：' + err.error : '') + '，請重新嘗試');
+        }
+        return;
       } catch (e) {
-        // Fetch might have timed out (502) or aborted — the function is still running server-side
-        console.log('Fetch request ended:', e.message);
+        // 沒有收到回應 —— Hosting 在 60 秒放棄連線或客戶端 abort，
+        // 但 Function 仍在伺服器端繼續跑。這是重度帳號的正常路徑。
+        console.log('Fetch request ended without response:', e.message);
         stepFetch.textContent = '⏳ 伺服器仍在處理中，等待完成...';
         setProgress(60);
         pollForReady();
       }
     }
 
+    function showFailure(msg) {
+      clearInterval(ticker);
+      stepMerge.classList.remove('active');
+      stepFetch.classList.remove('active');
+      stepFetch.textContent = '❌ ' + msg;
+      stepMerge.textContent = '';
+      stepDone.innerHTML = '<a href="/loading" style="color:#1bd1fe;font-weight:bold;">↻ 重新嘗試</a>'
+        + ' ｜ <a href="/login" style="color:#1bd1fe;">回到登入頁</a>';
+    }
+
     function pollForReady() {
       stepMerge.classList.add('active');
       stepMerge.textContent = '⏳ 等待伺服器完成寫入...';
 
+      // 輪詢必須有上限與失敗分支。沒有的話，當 Function 被硬砍（逾時／OOM）而完成旗標
+      // 永遠不會寫入時，使用者會無限轉圈。POLL_MAX 略大於伺服器端的 FETCH_STALE_MS(320s)。
+      const POLL_INTERVAL_MS = 5000;
+      const POLL_MAX = 70; // 70 × 5s = 350s
+      let polls = 0;
+
       const poll = setInterval(async () => {
+        polls++;
         try {
           const res = await fetch('/check-ready');
           const data = await res.json();
@@ -181,11 +221,21 @@
             stepDone.classList.add('done');
             stepDone.textContent = '✅ 完成！正在跳轉...';
             setTimeout(() => { window.location.href = '/'; }, 800);
+            return;
+          }
+          if (data.failed) {
+            clearInterval(poll);
+            showFailure('抓取未能完成，請重新嘗試');
+            return;
           }
         } catch (e) {
-          // Keep polling
+          // 單次請求失敗不算失敗，繼續輪詢
         }
-      }, 5000);
+        if (polls >= POLL_MAX) {
+          clearInterval(poll);
+          showFailure('等待逾時，請重新嘗試');
+        }
+      }, POLL_INTERVAL_MS);
     }
 
     startFetch();

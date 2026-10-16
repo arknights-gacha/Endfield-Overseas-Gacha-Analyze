@@ -102,7 +102,8 @@
     <p>由於官方的 API 設計有安全性考量（CORS 限制），擴充功能需要將取得的驗證資訊透過 HTTPS 以加密的方式發送到我們的 Firebase 伺服器進行代理請求與處理。</p>
     <ul>
       <li><strong>安全傳輸：</strong> 您與我們伺服器之間的所有通訊皆被 HTTPS / TLS 強制加密。</li>
-      <li><strong>無敏感資訊之持久儲存 (No Persistent Storage of Tokens)：</strong> 我們伺服器在取得您的紀錄後，會將您的尋訪紀錄 (Gacha Records) 暫時或經過轉換後快取至我們的 Firebase 雲端資料庫（僅以您的遊戲 UID 作為匿名索引），以便提供統計圖表功能。但您<strong>於Gryphline 網站的登入狀態、驗證 Cookie 與 Token 絕對不會被持久儲存在我們的資料庫中</strong>，並在當次請求處理完畢後立即被銷毀。</li>
+      <li><strong>紀錄快取：</strong> 我們伺服器在取得您的紀錄後，會將您的尋訪紀錄 (Gacha Records) 暫時或經過轉換後快取至我們的 Firebase 雲端資料庫（以遊戲 UID 作為索引），以便提供統計圖表功能。</li>
+      <li><strong>授權憑證不進資料庫 (No Token in Database)：</strong> 您於 Gryphline 網站的登入狀態、驗證 Cookie 與 Token <strong>不會被寫入我們的資料庫</strong>。抓取紀錄所需的授權憑證僅存放於一個 <code>httpOnly</code> Cookie，並在抓取完成後清除。</li>
     </ul>
 
     <h2>5. 擴充功能權限聲明 (Extension Permissions Justification)</h2>
