@@ -12,7 +12,7 @@
 **技術棧 (Tech Stack)**：
 *   **後端**：Node.js + Firebase Cloud Functions + Express。
 *   **前端**：EJS 樣板引擎 + Vanilla JS/CSS（零前端框架，追求極致輕量化與快速渲染）。
-*   **儲存**：Firestore（僅用於快取與匿名化統計）。授權憑證**不寫入資料庫** —— 它只存在於已簽章的 httpOnly `__session` cookie 中（見下方第 4 節的不可違反原則 7）。<br>⚠️ 歷史：2026-08-13 ~ 2026-10 曾把 `oauthToken` 暫存於 Firestore 的 `pendingFetch`，並因 BigQuery extension 而被永久保留。該設計已移除。
+*   **儲存**：Firestore（僅用於快取與匿名化統計）。授權憑證**不寫入資料庫** —— 它只存在於已簽章的 httpOnly `__session` cookie 中（見下方第 4 節的不可違反原則 7）。
 *   **輔助工具**：Chromium 擴充功能 (`Endfield-Overseas-Gacha-Helper-Extension`)，負責從官方網頁中安全提取 `X-Role-Token` 與登入 Cookie。
 
 **當前系統最新狀態**：
@@ -20,7 +20,7 @@
 *   已完成各卡池的「獨立統計與渲染」架構（角色池與武器池完全拆分）。
 *   已對齊並修正終末地特有的星級邏輯：包含武器池在內，最高稀有度（出金）皆為 6 星。
 *   **（2026-10-16）P0-8 完成**：新增「重構尋訪」抓取；分類改為抓取時標記 `poolType`；顯示層改為資料驅動；重構尋訪保底改以「同名」累積。
-*   **（2026-10-16）P0-9 完成**：授權憑證改走 httpOnly cookie，完全不經手 Firestore；新增 uid consistency check 與抓取互斥鎖。
+*   **（2026-10-16）P0-9 完成**：授權憑證只存在 httpOnly cookie，不經手 Firestore；新增 uid consistency check 與抓取互斥鎖。
 
 **本機驗證腳本**（`scripts/`，在工作區根目錄執行）：
 ```bash
@@ -96,10 +96,10 @@ node Firebase-endfieldgacha/scripts/flow-check.js       # 登入／抓取流程�
     *   另有兩個端點：`GET /api/record/weapon/pool` 回傳武器卡池註冊表（`poolId` / `poolName` / `poolType` 為 `normal`｜`rerun` / `online`），我們用它標記武器側的重構池；`GET /api/record/char/pool` 存在但 `data` 為空陣列，**無法**用來列舉角色卡池。
 
 7.  🔴 **不可違反：憑證絕不可寫入受 BigQuery extension 監聽的文件**
-    *   `extensions/firestore-bigquery-export.env` 的 `COLLECTION_PATH=endfieldUsers` —— **直接監聽使用者文件**，且 `EXCLUDE_OLD_DATA=no`。
+    *   Firebase Console 上的 `firestore-bigquery-export` extension 設定為 `COLLECTION_PATH=endfieldUsers` —— **直接監聽使用者文件**，且 `EXCLUDE_OLD_DATA=no`。
     *   寫進受監聽文件的任何欄位都是**永久的**：changelog 的 `old_data` 連被刪掉的欄位都會保留，`FieldValue.delete()` 救不回來。
     *   所以 `endfieldUsers/{roleId}` 只能放不敏感內容（`info` 與 `fetchStartedAt` / `lastFetchedAt` 時間戳）。憑證一律走 `__session` cookie（`index.js` 的 `getSession` / `setSession`）。
-    *   改動 extension 設定請改 `extensions/*.env` 並重新部署，**不要在 Console 直接改** —— 那樣變更無跡可循，2026-08-13 就是這樣出事的。
+    *   extension 設定由 Firebase Console 管理，**不納入本 repo**（BigQuery 匯出屬於獨立的分析工作流，`.gitignore` 已排除 `extensions/`）。設定快照在工作區的 `datastudio/firestore-bigquery-export.env`，不會自動跟隨 Console，變更後需手動 `firebase ext:export` 同步。任何 `firebase ext:*` 指令都會把 `etags` 寫回 `.firebaserc`，提交前請檢查 `git diff .firebaserc`。
 
 8.  ⚠️ **新增的 API 欄位不可單獨作為演算法依據**
     *   舊紀錄沒有新欄位。任何依賴新欄位的判斷都**必須明確定義「欄位不存在」時的行為**。

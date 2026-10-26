@@ -178,7 +178,7 @@ app.post('/login', async (req, res) => {
             //    開始標記只由真正開始抓取的 /fetch-logs 自己寫。
             await db.collection('endfieldUsers').doc(roleId).set({
                 info: { uid, roleId, serverId, serverName, nickName },
-                // 清掉舊版可能殘留的明文權杖欄位
+                // 確保文件內沒有 pendingFetch 欄位：憑證不可進 Firestore（見 agent.md 不可違反原則 7）
                 pendingFetch: admin.firestore.FieldValue.delete()
             }, { merge: true });
             
